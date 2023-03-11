@@ -24,17 +24,17 @@ Interestingly, the parameters are computed and displayed only for the zones of i
 The package is divided into three sections:
 
 1. **Data**. This further contains three submodules that handle:
-> Loading of well data
-> Processing of well log data
-> Statistical analysis such as log frequencies and correlation
+* Loading of well data
+* Processing of well log data
+* Statistical analysis such as log frequencies and correlation
 
 2. **Visualization**. This also contains two submodules to handle:
-> Well log visualisation 
-> Plot well locations on an actual map
-> Facilitates the loading of well tops.
-> Plot log curves along with zonation tracks
-> Neutron-density cross plot
-> Pickett Plot
+* Well log visualisation 
+* Plot well locations on an actual map
+* Facilitates the loading of well tops.
+* Plot log curves along with zonation tracks
+* Neutron-density cross plot
+* Pickett Plot
 
 3. **Workflow**. This is a workflow module that perform the actual petrophysical analysis from shale volume to pay summary result computation.
 
