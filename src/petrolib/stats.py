@@ -43,7 +43,7 @@ class Correlation:
     Return
     -------
 
-    `petrolib.data.stats.Correlation` object
+    `petrolib.stats.Correlation` object
 
     Example
     -------
@@ -72,7 +72,7 @@ class Correlation:
 
         return chatt_corr
 
-    def corr(self, method:'str'='chatterjee'):
+    def corr(self, method:str='chatterjee'):
 
         r'''
 
@@ -85,8 +85,8 @@ class Correlation:
         method : str, default 'chatterjee'
               Method of correlation. {'chatterjee', 'pearsonr', 'linear', 'nonlinear'}
 
-              ... 'linear' is the same as 'pearsonr'
-              ... 'nonlinear' is the same as 'chatterjee'
+              * 'linear' is the same as 'pearsonr'
+              * 'nonlinear' is the same as 'chatterjee'
         
         Return
         ------
@@ -123,7 +123,7 @@ class Correlation:
         return df
 
 
-    def plot_heatmap(self, title:'str'='Correlation Heatmap', figsize:'slice'=(12, 7), annot:'bool'=True, cmap=None):
+    def plot_heatmap(self, title:str='Correlation Heatmap', figsize:slice=(12, 7), annot:bool=True, cmap=None):
 
         r'''
         Plots the heat map of Correlation Matrix
@@ -155,7 +155,7 @@ class Correlation:
         plt.title(title)
         sns.heatmap(corr, annot=annot, vmin=-1, vmax=1, cmap=cmap)
 
-def displayFreq(df:pd.DataFrame, *cols:'tuple[str]', bins:int=12, figsize:slice=(8, 8)):
+def displayFreq(df:pd.DataFrame, *cols:tuple[str], bins:int=12, figsize:slice=(8, 8)):
     '''
     Function to plot the frequency distribution of well log curves
     
@@ -179,7 +179,7 @@ def displayFreq(df:pd.DataFrame, *cols:'tuple[str]', bins:int=12, figsize:slice=
         
     Example
     -------
-    >>> from petrolib.data.stats import displayFreq
+    >>> from petrolib.stats import displayFreq
     >>> displayFreq(df, 'GR','CALI', 'COAL', 'DT', 'DT_LOG', bins=15, figsize=(20,10))
     
     '''

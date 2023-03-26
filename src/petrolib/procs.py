@@ -7,6 +7,7 @@ Functions
 set_alias
 process_data
 trim
+model_facies
 
 '''
 
@@ -97,9 +98,9 @@ def process_data(df:pd.DataFrame, gr:str, rt:str, nphi:str, rhob:str, dt:str=Non
 
     trim : str default 'both'
         Conditions for trim arbitrary values 
-        ... 'max' : to trim values higher than conventional maximum values 
-        ... 'min' : to trim values lower than conventional lower values
-        ... default 'both' : to trim both lower and higher values to conventional high and lower values 
+        * 'max' : to trim values higher than conventional maximum values 
+        * 'min' : to trim values lower than conventional lower values
+        * default 'both' : to trim both lower and higher values to conventional high and lower values 
     
     Returns
     -------
@@ -162,7 +163,7 @@ def process_data(df:pd.DataFrame, gr:str, rt:str, nphi:str, rhob:str, dt:str=Non
     
     return data
 
-def trim(df:pd.DataFrame, col:str, lower:'int|float', upper:'int|float'):
+def trim(df:pd.DataFrame, col:str, lower:int|float, upper:int|float):
     
     '''
     Function to preprocess data by trimming arbitrary values 
@@ -194,5 +195,62 @@ def trim(df:pd.DataFrame, col:str, lower:'int|float', upper:'int|float'):
 
     df[col] = df[col].mask(df[col]<lower, lower)
     df[col] = df[col].mask(df[col]>upper, upper)
+
+    return df
+
+def model_facies(df:pd.DataFrame, gr:str, env:str='SS') -> pd.DataFrame:
+
+    '''
+    Models lithofacies from Gamma ray log specific to a particular environment
+
+    df : pd.DataFrame
+        dataframe 
+    
+    gr : str
+        Gamma ray log column
+
+    env : str 
+        Environment type. Either siliciclastic or carbonate
+        * 'SS' for Siliclastic (Shale and Sandstone) environment
+        * 'CO' for carbonate (Anhydrite, Limestone, Dolomite, Sandstone, Shale) environment 
+
+    Example
+    -------
+    >>>from petrolib.interp import model_facies
+    >>>model_facies(df, gr='GR', env='SS')
+    
+    '''
+
+    litho = list()
+
+    if env == 'SS':
+
+        for i in df[gr]:
+
+            if i < 75.0:
+                litho.append('Sandstone')
+            else:
+                litho.append('Shale')
+    
+    elif env == 'CO':
+
+        for i in df[gr]:
+
+            if i>= 8. and i<11.:
+                litho.append('Anhydrite')
+            
+            elif i>=10 and i<15.:
+                litho.append('Limestone')
+
+            elif i>=15 and i<=40.:
+                litho.append('Dolomite')
+
+            elif i>40 and i<=75:
+                litho.append('Sandstone')
+
+            elif i > 75.:
+                litho.append('Shale')
+
+    df['litho'] = litho
 
     return df

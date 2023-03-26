@@ -19,16 +19,13 @@ In addition to estimating these parameters, log plots are automatically displaye
 
 Interestingly, the parameters are computed and displayed only for the zones of interest picked. Plots such as neutron-density and pickett are available for reservoir assessment. Geolocations of the wells can also be visualised.
 
-### Hierarachy
+### Functionalities
 
-The package is divided into three sections:
+The package is designed to handle:
 
-1. **Data**. This further contains three submodules that handle:
 * Loading of well data
 * Processing of well log data
 * Statistical analysis such as log frequencies and correlation
-
-2. **Visualization**. This also contains two submodules to handle:
 * Well log visualisation 
 * Plot well locations on an actual map
 * Facilitates the loading of well tops.
@@ -36,16 +33,14 @@ The package is divided into three sections:
 * Neutron-density cross plot
 * Pickett Plot
 
-3. **Workflow**. This is a workflow module that perform the actual petrophysical analysis from shale volume to pay summary result computation.
-
 ### Quick tutorial
 ```
 #import necessaries
 from pathlib import Path
-from petrolib.data import procs
-from petrolib.data import file_reader as fr
-from petrolib.petro.workflow import Quanti
-from petrolib.visualization.plot import tripleCombo, Zonation, plotLog
+from petrolib import procs
+from petrolib import file_reader as fr
+from petrolib.workflow import Quanti
+from petrolib.plots import tripleCombo, Zonation, plotLog
 
 #load data
 well_path = Path(r"C:\Users\USER\Documents\petrolib\15_9-19.las")
@@ -83,5 +78,5 @@ ps = pp.paySummary(name='15-9_F1A')
 pp.save(file_name='Pay Summary')
 ```
 
-Tutorial [link]("https://github.com/mayor-of-geology/petrolib/tutorials")
+Tutorial [link](https://github.com/mayor-of-geology/petrolib/tutorials)
 

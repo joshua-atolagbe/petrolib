@@ -13,7 +13,7 @@ filterwarnings('ignore')
 import lasio
 import pandas as pd
 
-def load_las(file:'Path|str', return_csv:bool=False, curves:'list|tuple'=None) -> 'lasio.las.LASFile|pd.DataFrame':
+def load_las(file:Path|str, return_csv:bool=False, curves:list|tuple=None) -> lasio.las.LASFile|pd.DataFrame:
 
     '''
     Function to read LAS file
@@ -93,8 +93,8 @@ def load_las(file:'Path|str', return_csv:bool=False, curves:'list|tuple'=None) -
         return las
 
 
-def load_table(file:'Path|str', curves:'list[str]'=None, delimiter:str=None, header:'int|list[int]'='infer', 
-                    skiprows:'list|int'=None, sheet_name:'int|str|list'=None) ->pd.DataFrame:
+def load_table(file:Path|str, curves:list[str]=None, delimiter:str=None, header:int|list[int]='infer', 
+                    skiprows:list|int=None, sheet_name:int|str|list=None) -> pd.DataFrame:
 
     r"""
     Function to load a table data, either csv, tsv, or excel file
@@ -126,11 +126,11 @@ def load_table(file:'Path|str', curves:'list[str]'=None, delimiter:str=None, hea
         
         Available cases:
 
-            ... 0 : 1st sheet as a `DataFrame`
-            ... 1: 2nd sheet as a `DataFrame`
-            ... "Sheet1" : Load sheet with name "Sheet1"
-            ... [0, 1, "Sheet5"]: Load first, second and sheet named "Sheet5" as a dict of `DataFrame`
-            ... defaults to None: All sheets.
+            * 0 : 1st sheet as a `DataFrame`
+            * 1: 2nd sheet as a `DataFrame`
+            * "Sheet1" : Load sheet with name "Sheet1"
+            * [0, 1, "Sheet5"]: Load first, second and sheet named "Sheet5" as a dict of `DataFrame`
+            * defaults to None: All sheets.
 
         See help(pd.read_excel) for more
 

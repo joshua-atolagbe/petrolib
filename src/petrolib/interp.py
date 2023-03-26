@@ -15,8 +15,8 @@ from random import choice
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 
-def crossPlot(df, column_x:str, column_y:str, hue:str=None,
-               color_code:str=None, figsize:slice=(20,7), rhob_fluid:float=1., cmap='viridis'):  
+def crossPlot(df:pd.DataFrame, column_x:str, column_y:str, hue:str=None,
+               color_code:str=None, figsize:slice=(20,7), rhob_fluid:float=1., res_name:str=None, cmap='viridis'):  
 
     r'''
     Plots the cross plot relationship of density against porosity on compatible scales
@@ -42,7 +42,7 @@ def crossPlot(df, column_x:str, column_y:str, hue:str=None,
         Column to color code the scatter plot by
         
     color_code : str default None
-        Color code typing. If 'num', arg `hue` must be a continuous column
+        Color code typing. If 'num', arg `hue` must be a continuous column.
         If 'cat', argument `hue` must be a categorical column
 
     figsize : slice
@@ -50,8 +50,12 @@ def crossPlot(df, column_x:str, column_y:str, hue:str=None,
 
     rhob_fluid : float, default 1.0
         Fluid density
+    
+    res_name : str
+        Reservoir name
 
-    cmap : color map 
+    cmap : str
+        color map 
 
     Returns
     -------
@@ -59,8 +63,8 @@ def crossPlot(df, column_x:str, column_y:str, hue:str=None,
 
     Example
     -------
-    >>> from petrolib.visualization.interp import crossPlot
-    >>> crossPlot(df=df, column_x='NPHI', column_y='RHOB',color_code='num', hue='GR') 
+    >>> from petrolib.interp import crossPlot
+    >>> crossPlot(df=df, column_x='NPHI', column_y='RHOB', res_name='RES_A', color_code='num', hue='GR') 
     
     '''
 
@@ -121,16 +125,16 @@ def crossPlot(df, column_x:str, column_y:str, hue:str=None,
         plt.scatter(df[column_x], df[column_y], c=choice(next(cycol)))
 
     plt.legend(loc='upper left')
-    plt.title('Neutron-Density Plot', size=20, pad=20)
-    plt.xlim(-0.05, 0.45)
-    plt.ylim(3, 1.9)
-    plt.xlabel('$\phi (g/cc) $',fontsize=18); plt.ylabel(r'$\rho (g/cc)$', fontsize=18)
+    plt.title(f'Neutron-Density Cross Plot of RES {res_name}', size=20, pad=20)
+    plt.xlim(-0.15, .60)
+    plt.ylim(3, 1.3)
+    plt.xlabel('$\phi (m3/m3) $',fontsize=18); plt.ylabel(r'$\rho (g/cm3)$', fontsize=18)
     plt.show()
 
 
 
 def picketPlot(df:pd.DataFrame, rt:str='RT', por:str='NPHI', rwa:float=0.018,
-                a:float=1., m:float=1.8, n:float=2., figsize:slice=(20, 8),
+                a:float=1., m:float=1.8, n:float=2., res_name:str=None, figsize:slice=(20, 8),
                hue:str=None, color_code:str=None, cmap=None):
     
     r'''
@@ -159,6 +163,9 @@ def picketPlot(df:pd.DataFrame, rt:str='RT', por:str='NPHI', rwa:float=0.018,
     n : float default 2.
         Saturation exponent
 
+    res_name : str 
+        Reservoir/Zone name
+
     figsize : slice
         Size of plot
 
@@ -170,12 +177,15 @@ def picketPlot(df:pd.DataFrame, rt:str='RT', por:str='NPHI', rwa:float=0.018,
         If 'cat', argument `hue` must be a categorical column
         if None, there is no color coding 
     
+    cmap : str
+        Color map option 
+
     Example
     -------
-    >>> import petrolib.visualization.interp.picketPlot
+    >>> import petrolib.interp.picketPlot
     >>> picketPlot(df, color_code='num', hue='GR', cmap='rainbow')
 
-    >>> from petrolib.visualization.interp import picketPlot
+    >>> from petrolib.interp import picketPlot
     >>> picketPlot(df, rt='RT', por='NPHI') 
     
     '''
@@ -186,7 +196,7 @@ def picketPlot(df:pd.DataFrame, rt:str='RT', por:str='NPHI', rwa:float=0.018,
     plt.minorticks_on()
     plt.grid(which='major', linestyle='-', linewidth='1.5', color='black')
     plt.grid(which='minor', linestyle=':', linewidth='1', color='black')    
-    plt.title('Pickett Plot', size=20, pad=15)
+    plt.title(f'Pickett Plot of RES {res_name}', size=20, pad=17)
    
     if color_code == None:
         assert hue == None and cmap ==None, 'Set hue and cmap to None'
@@ -219,7 +229,7 @@ def picketPlot(df:pd.DataFrame, rt:str='RT', por:str='NPHI', rwa:float=0.018,
 
     
     #saturation lines
-    sw = (1.0,0.8,0.6,0.4,0.2)
+    sw = (.8,0.6,0.4,0.2, 0.1)
     phi = (0.01,1)
 
     rt = np.zeros((len(sw), len(phi)))
@@ -232,3 +242,5 @@ def picketPlot(df:pd.DataFrame, rt:str='RT', por:str='NPHI', rwa:float=0.018,
     for i in range(0,len(sw)):
         plt.plot(rt[i], phi, label=str(int(sw[i]*100))+'%')
         plt.legend(loc='best')
+    
+    plt.show()

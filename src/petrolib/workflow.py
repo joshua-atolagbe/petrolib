@@ -83,14 +83,14 @@ class Quanti(object):
     Example
     --------
     #loading libraries/packages
-    >>> from petrolib.petro.workflow import Quanti
-    >>> from petrolib.visualization.plot import Zonation
-    >>> from petrolib.data.file_reader import load_las
+    >>> from petrolib.workflow import Quanti
+    >>> from petrolib.plot import Zonation
+    >>> from petrolib.file_reader import load_las
     >>> from pathlib import Path
 
     #loading well file and zonation/tops file
-    >>> well_path = Path(r"C:\Users\USER\Documents\petrolib\test\petrolib\petrolib\15_9-F-1A.LAS")
-    >>> contact_path = Path(r"C:\Users\USER\Documents\petrolib\test\petrolib\petrolib\contact.csv")
+    >>> well_path = Path(r"./15_9-F-1A.LAS")
+    >>> contact_path = Path(r"./well tops.csv")
 
     >>> las, df= load_las(well_path, curves=['GR', 'RT', 'NPHI', 'RHOB'], return_las=True)
 
@@ -104,8 +104,8 @@ class Quanti(object):
 
 
     def __init__(self, df:pd.DataFrame, zonename:list, ztop:list, zbot:list,  f_mids:list,
-                 depth:'str', gr:'str', rt:str, nphi:str, rhob:'str', sonic:str=None,
-                use_mean:'bool'=None,  use_median:'bool'=None):
+                 depth:str, gr:str, rt:str, nphi:str, rhob:str, sonic:str=None,
+                use_mean:bool=None,  use_median:bool=None):
         
         self._df = df
         self._depth = depth
@@ -203,10 +203,10 @@ class Quanti(object):
         ----------
         method : str default 'linear'
             Volume of Shale method. {'linear', 'clavier', 'larionov_ter', 'larionov_older', 'stieber_1', 'stieber_2, 'stieber_m_pliocene'}
-            ..Linear = Gamma Ray Index (IGR)
-            ..Larionov Tertiary
-            ..Larionov Older Rocks
-            ..Stieber (Miocene/Pliocene)
+            *Linear = Gamma Ray Index (IGR)
+            *Larionov Tertiary
+            *Larionov Older Rocks
+            *Stieber (Miocene/Pliocene)
 
         show_plot : bool default False
             Display plot if True.. Plots GR, VSH and Zone track
@@ -284,14 +284,14 @@ class Quanti(object):
 
             assert palette_op != None and figsize != None, f'Supply value for palette option and figsize'
 
-            fig, ax = plt.subplots(nrows=1, ncols=3, figsize=figsize)
-            fig.suptitle(f'VSH', size=15, y=1.)
+            fig, ax = plt.subplots(nrows=1, ncols=3, figsize=figsize, sharey=True)
+            fig.suptitle(f'Volume of Shale', size=15, y=1.)
 
             span = 1
             cmap=plt.get_cmap(palette_op)
             color_index = np.arange(0, 1, span/10)
 
-            logs = ['GR', 'VShale']
+            logs = [self._gr, 'VShale']
             gr_base = 75.#(data[self._gr].max() - data[self._gr].min())/2
             for i in range(2):
                 
@@ -317,34 +317,35 @@ class Quanti(object):
                 ax[i].spines['top'].set_edgecolor('black')
                 ax[i].spines["top"].set_position(("axes", 1.02)); ax[i].xaxis.set_ticks_position("top")
                 ax[i].xaxis.set_label_position("top")
-                ax[i].hlines([t for t in self._ztop], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid')
-                ax[i].hlines([b for b in self._zbot], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid')
+                ax[i].hlines([t for t in self._ztop], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
+                ax[i].hlines([b for b in self._zbot], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
             
             #formation subplot
             ax[-1].set_ylim(data[self._depth].min(), data[self._depth].max()); ax[-1].invert_yaxis()
             ax[-1].set_title('Zones', pad=45)
             ax[-1].set_xticks([])
-            ax[-1].set_yticklabels([])
+            # ax[-1].set_yticklabels([])
             ax[-1].set_xticklabels([])
-            ax[-1].hlines([t for t in self._ztop], xmin=0, xmax=1, colors='black', linestyles='solid')
-            ax[-1].hlines([b for b in self._zbot], xmin=0, xmax=1, colors='black', linestyles='solid')
+            ax[-1].hlines([t for t in self._ztop], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
+            ax[-1].hlines([b for b in self._zbot], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
             formations = ax[-1]
 
             #delineating zones
-            cycol = cycle('bgrcmk')
+            cycol = cycle('bgrycmk')
             color = [choice(next(cycol)) for i in range(len(self._zonename))]
+            np.random.shuffle(color)
             for i in ax:
                 for t,b, c in zip(self._ztop, self._zbot, color):
-                    i.axhspan(t, b, color=c, alpha=0.1)
+                    i.axhspan(t, b, color=c, alpha=0.3)
 
             #adding zone names
             for label, fm_mids in zip(self._zonename, self._f_mids):
-                formations.text(0.5, fm_mids, label, rotation=90,
+                formations.text(0.5, fm_mids, label, rotation=0,
                         verticalalignment='center', fontweight='bold',
                         fontsize='large')
         #    
             plt.tight_layout(h_pad=1)
-            fig.subplots_adjust(wspace = 0.04)
+            fig.subplots_adjust(wspace = 0.01)
             # plt.show()
             
             return new_data
@@ -356,7 +357,7 @@ class Quanti(object):
             return new_data
 
     def porosity(self, method:str='density', rhob_shale:float=2.4, rhob_fluid:float=1.,
-                     rhob_matrix:float=2.65, fzs:float=None, show_plot:'bool'=False, figsize:slice=None):
+                     rhob_matrix:float=2.65, fzs:float=None, show_plot:bool=False, figsize:slice=None):
 
         '''
         Computes the effective and total porosities using the 'density' and Wyllie's 'sonic' method. 
@@ -431,13 +432,15 @@ class Quanti(object):
                 d['PHIT'] = (d[self._sonic] - 47.) / (189. - 47.)
                 d['PHIT'] = d['PHIT'].mask(d['PHIT']<0, 0)#mask areas where phie is less than 0
 
+                d['PHIE'] = 0
+
         data = pd.concat(new_data).reindex(np.arange(0, self._df.shape[0]))
 
         if show_plot == True:
 
             assert figsize != None, f'Supply figsize value'
 
-            fig, ax = plt.subplots(nrows=1, ncols=4, figsize=figsize)
+            fig, ax = plt.subplots(nrows=1, ncols=4, figsize=figsize, sharey=True)
             fig.suptitle(f'Porosity', size=15, y=1.)
 
             span = 1
@@ -445,7 +448,7 @@ class Quanti(object):
             color_index = np.arange(0, 1, span/10)
 
             #for RHOB and VSH
-            logs = ['RHOB', 'VShale']
+            logs = [self._rhob, 'VShale']
             for i in range(2):
                 if i==0:
                     ax[i].plot(data[logs[i]], data[self._depth], color='blue', linewidth=1.)
@@ -466,19 +469,20 @@ class Quanti(object):
                 ax[i].spines['top'].set_edgecolor('black')
                 ax[i].spines["top"].set_position(("axes", 1.02)); ax[i].xaxis.set_ticks_position("top")
                 ax[i].xaxis.set_label_position("top")
-                ax[i].hlines([t for t in self._ztop], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid')
-                ax[i].hlines([b for b in self._zbot], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid')
+                ax[i].hlines([t for t in self._ztop], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
+                ax[i].hlines([b for b in self._zbot], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
 
             #for PHIT
             ax[2].minorticks_on()
+            ax[2].set_xticklabels([]);ax[2].set_xticks([])
             ax[2].yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
             ax[2].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-            ax[2].hlines([t for t in self._ztop], xmin=data["PHIT"].min(), xmax=data["PHIT"].max(), colors='black', linestyles='solid')
-            ax[2].hlines([b for b in self._zbot], xmin=data["PHIT"].min(), xmax=data["PHIT"].max(), colors='black', linestyles='solid')
+            ax[2].hlines([t for t in self._ztop], xmin=0, xmax=data["PHIT"].max(), colors='black', linestyles='solid', linewidth=1.)
+            ax[2].hlines([b for b in self._zbot], xmin=0, xmax=data["PHIT"].max(), colors='black', linestyles='solid', linewidth=1.)
             nphi_ = ax[2].twiny()
             nphi_.grid(which='major', linestyle='-', linewidth=0.5, color='darkgrey')
             nphi_.plot(data['PHIT'], data[self._depth], color='blue', linewidth=0.5)
-            # nphi_.fill_betweenx(data[self._depth], data['PHIT'].min(), data["PHIT"], where=data['PHIT']>=data['PHIT'].min(), facecolor='lightblue', interpolate=True, linewidth=0)
+            nphi_.fill_betweenx(data[self._depth], data['PHIE'].max(), data['PHIT'], color='slategray', linewidth=1.)
             nphi_.set_xlim(data['PHIT'].min(), data['PHIT'].max())
             nphi_.set_ylim(data[self._depth].min(), data[self._depth].max())
             nphi_.invert_yaxis()
@@ -489,13 +493,13 @@ class Quanti(object):
             nphi_.spines["top"].set_position(("axes", 1.02))
             nphi_.xaxis.set_ticks_position("top")
             nphi_.xaxis.set_label_position("top")
-            nphi_.set_xticks(list(np.linspace(data['PHIT'].min(), data['PHIT'].max(), num=5)))
+            nphi_.set_xticks(list(np.linspace(data['PHIT'].min(), data['PHIT'].max(), num=4)))
             
             
             #for PHIE
             phi = ax[2].twiny()
             phi.plot(data['PHIE'], data[self._depth], color='red', linewidth=0.5)
-            # phi.fill_betweenx(data[self._depth], data['PHIE'].max(), data["PHIE"], where=data['PHIE']<=data['PHIE'].max(), facecolor='lightblue', linewidth=0)
+            phi.fill_betweenx(data[self._depth], data["PHIE"], data['PHIE'].max(), color='lightblue')
             phi.set_xlim(data['PHIE'].min(), data['PHIE'].max())
             phi.set_ylim(data[self._depth].min(), data[self._depth].max())
             phi.invert_yaxis()
@@ -504,37 +508,38 @@ class Quanti(object):
             phi.tick_params(axis='x', colors='red')
             phi.spines['top'].set_edgecolor('red')
             phi.set_xlabel('PHIE_'+method[0].upper(), color='red')
-            phi.spines["top"].set_position(("axes", 1.08))
+            phi.spines["top"].set_position(("axes", 1.05))
             phi.xaxis.set_ticks_position("top")
             phi.xaxis.set_label_position("top")
-            phi.set_xticks(list(np.linspace(data['PHIE'].min(), data['PHIE'].max(), num=5)))
+            phi.set_xticks(list(np.linspace(data['PHIE'].min(), data['PHIE'].max(), num=4)))
             
 
             #formation subplot
             ax[-1].set_ylim(data[self._depth].min(), data[self._depth].max()); ax[-1].invert_yaxis()
             ax[-1].set_title('Zones', pad=45)
             ax[-1].set_xticks([])
-            ax[-1].set_yticklabels([])
+            # ax[-1].set_yticklabels([])
             ax[-1].set_xticklabels([])
-            ax[-1].hlines([t for t in self._ztop], xmin=0, xmax=1, colors='black', linestyles='solid')
-            ax[-1].hlines([b for b in self._zbot], xmin=0, xmax=1, colors='black', linestyles='solid')
+            ax[-1].hlines([t for t in self._ztop], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
+            ax[-1].hlines([b for b in self._zbot], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
             formations = ax[-1]
 
             #delineating zones
-            cycol = cycle('bgrcmk')
+            cycol = cycle('bgrycmk')
             color = [choice(next(cycol)) for i in range(len(self._zonename))]
+            np.random.shuffle(color)
             for i in ax:
                 for t,b, c in zip(self._ztop, self._zbot, color):
-                    i.axhspan(t, b, color=c, alpha=0.1)
+                    i.axhspan(t, b, color=c, alpha=0.3)
 
             #adding zone names
             for label, fm_mids in zip(self._zonename, self._f_mids):
-                formations.text(0.5, fm_mids, label, rotation=90,
+                formations.text(0.5, fm_mids, label, rotation=0,
                         verticalalignment='center', fontweight='bold',
                         fontsize='large')
          
             plt.tight_layout(h_pad=1)
-            fig.subplots_adjust(wspace = 0.04)
+            fig.subplots_adjust(wspace = 0.01)
             # plt.show()
 
             return new_data
@@ -546,7 +551,7 @@ class Quanti(object):
             return new_data
 
     def water_saturation(self, method:str='archie', rw:float=0.03, a:float=1., m:float=2., n:float=2.,
-                                 show_plot:'bool'=False, figsize:slice=None):
+                                 show_plot:bool=False, figsize:slice=None):
 
                 
         '''
@@ -632,9 +637,9 @@ class Quanti(object):
 
             assert figsize != None, f'Supply figsize value'
 
-            logs = ['RT', 'SW']
+            logs = [self._rt, 'SW']
 
-            fig, ax = plt.subplots(nrows=1, ncols=4, figsize=figsize)
+            fig, ax = plt.subplots(nrows=1, ncols=4, figsize=figsize, sharey=True)
             fig.suptitle(f'Saturations', size=15, y=1.)
 
             for i in range(2):
@@ -642,8 +647,8 @@ class Quanti(object):
                 # for resistivity plot
                 if i==0:
                     ax[i].semilogx(data[logs[i]], data[self._depth], color='red', linewidth=1, linestyle='--')
-                    ax[i].hlines([t for t in self._ztop], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid')
-                    ax[i].hlines([b for b in self._zbot], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid')
+                    ax[i].hlines([t for t in self._ztop], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
+                    ax[i].hlines([b for b in self._zbot], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
                 
                 #for non-resistivity plot
                 if i==1:
@@ -668,13 +673,15 @@ class Quanti(object):
                 
             #for PHIT
             ax[2].minorticks_on()
+            ax[2].set_xticklabels([]);ax[2].set_xticks([])
             ax[2].yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
             ax[2].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-            ax[2].hlines([t for t in self._ztop], xmin=data["PHIT"].min(), xmax=data["PHIT"].max(), colors='black', linestyles='solid')
-            ax[2].hlines([b for b in self._zbot], xmin=data["PHIT"].min(), xmax=data["PHIT"].max(), colors='black', linestyles='solid')
+            ax[2].hlines([t for t in self._ztop], xmin=data["PHIT"].min(), xmax=data["PHIT"].max(), colors='black', linestyles='solid', linewidth=1.)
+            ax[2].hlines([b for b in self._zbot], xmin=data["PHIT"].min(), xmax=data["PHIT"].max(), colors='black', linestyles='solid', linewidth=1.)
             nphi_ = ax[2].twiny()
             nphi_.grid(which='major', linestyle='-', linewidth=0.5, color='darkgrey')
             nphi_.plot(data['PHIT'], data[self._depth], color='blue', linewidth=0.5)
+            nphi_.fill_betweenx(data[self._depth], data['PHIE'].max(), data['PHIT'], color='slategray', linewidth=1.)
             nphi_.set_xlim(data['PHIT'].min(), data['PHIT'].max())
             nphi_.set_ylim(data[self._depth].min(), data[self._depth].max())
             nphi_.invert_yaxis()
@@ -690,7 +697,7 @@ class Quanti(object):
             #for PHIE
             phi = ax[2].twiny()
             phi.plot(data['PHIE'], data[self._depth], color='red', linewidth=0.5)
-            # phi.fill_betweenx(data[self._depth], data['PHIE'].max(), data["PHIE"], where=data['PHIE']<=data['PHIE'].max(), facecolor='lightblue', linewidth=0)
+            phi.fill_betweenx(data[self._depth], data["PHIE"], data['PHIE'].max(), color='lightblue')
             phi.set_xlim(data['PHIE'].min(), data['PHIE'].max())
             phi.set_ylim(data[self._depth].min(), data[self._depth].max())
             phi.invert_yaxis()
@@ -699,7 +706,7 @@ class Quanti(object):
             phi.tick_params(axis='x', colors='red')
             phi.spines['top'].set_edgecolor('red')
             phi.set_xlabel('PHIE_'+method[0].upper(), color='red')
-            phi.spines["top"].set_position(("axes", 1.08))
+            phi.spines["top"].set_position(("axes", 1.05))
             phi.xaxis.set_ticks_position("top")
             phi.xaxis.set_label_position("top")
             phi.set_xticks(list(np.linspace(data['PHIE'].min(), data['PHIE'].max(), num=5)))
@@ -708,27 +715,28 @@ class Quanti(object):
             ax[-1].set_ylim(data[self._depth].min(), data[self._depth].max()); ax[-1].invert_yaxis()
             ax[-1].set_title('Zones', pad=45)
             ax[-1].set_xticks([])
-            ax[-1].set_yticklabels([])
+            # ax[-1].set_yticklabels([])
             ax[-1].set_xticklabels([])
-            ax[-1].hlines([t for t in self._ztop], xmin=0, xmax=1, colors='black', linestyles='solid')
-            ax[-1].hlines([b for b in self._zbot], xmin=0, xmax=1, colors='black', linestyles='solid')
+            ax[-1].hlines([t for t in self._ztop], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
+            ax[-1].hlines([b for b in self._zbot], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
             formations = ax[-1]
 
             #delineating zones
             cycol = cycle('bgrcmk')
             color = [choice(next(cycol)) for i in range(len(self._zonename))]
+            np.random.shuffle(color)
             for i in ax:
                 for t,b, c in zip(self._ztop, self._zbot, color):
-                    i.axhspan(t, b, color=c, alpha=0.1)
+                    i.axhspan(t, b, color=c, alpha=0.3)
 
             #adding zone names
             for label, fm_mids in zip(self._zonename, self._f_mids):
-                formations.text(0.5, fm_mids, label, rotation=90,
+                formations.text(0.5, fm_mids, label, rotation=0,
                         verticalalignment='center', fontweight='bold',
                         fontsize='large')
         #    
             plt.tight_layout(h_pad=1)
-            fig.subplots_adjust(wspace = 0.04)
+            fig.subplots_adjust(wspace = 0.01)
             # plt.show()
 
             return new_data
@@ -740,7 +748,7 @@ class Quanti(object):
 
             return new_data
 
-    def permeability(self, show_plot=False, figsize:slice=None):
+    def permeability(self, show_plot:bool=False, figsize:slice=None):
 
         '''
 
@@ -796,7 +804,7 @@ class Quanti(object):
 
             logs = ['PHIE', 'Perm']
 
-            fig, ax = plt.subplots(nrows=1, ncols=3, figsize=figsize)
+            fig, ax = plt.subplots(nrows=1, ncols=3, figsize=figsize, sharey=True)
             fig.suptitle(f'Permeability', size=15, y=1.)
 
             for i in range(2):
@@ -822,34 +830,35 @@ class Quanti(object):
                 ax[i].spines['top'].set_edgecolor('black')
                 ax[i].spines["top"].set_position(("axes", 1.02)); ax[i].xaxis.set_ticks_position("top")
                 ax[i].xaxis.set_label_position("top")
-                ax[i].hlines([t for t in self._ztop], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid')
-                ax[i].hlines([b for b in self._zbot], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid')
+                ax[i].hlines([t for t in self._ztop], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
+                ax[i].hlines([b for b in self._zbot], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
                 
             #formation subplot
             ax[-1].set_ylim(data[self._depth].min(), data[self._depth].max()); ax[-1].invert_yaxis()
             ax[-1].set_title('Zones', pad=45)
             ax[-1].set_xticks([])
-            ax[-1].set_yticklabels([])
+            # ax[-1].set_yticklabels([])
             ax[-1].set_xticklabels([])
-            ax[-1].hlines([t for t in self._ztop], xmin=0, xmax=1, colors='black', linestyles='solid')
-            ax[-1].hlines([b for b in self._zbot], xmin=0, xmax=1, colors='black', linestyles='solid')
+            ax[-1].hlines([t for t in self._ztop], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
+            ax[-1].hlines([b for b in self._zbot], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
             formations = ax[-1]
 
             #delineating zones
-            cycol = cycle('bgrcmk')
+            cycol = cycle('bgrycmk')
             color = [choice(next(cycol)) for i in range(len(self._zonename))]
+            np.random.shuffle(color)
             for i in ax:
                 for t,b, c in zip(self._ztop, self._zbot, color):
-                    i.axhspan(t, b, color=c, alpha=0.1)
+                    i.axhspan(t, b, color=c, alpha=0.3)
 
             #adding zone names
             for label, fm_mids in zip(self._zonename, self._f_mids):
-                formations.text(0.5, fm_mids, label, rotation=90,
+                formations.text(0.5, fm_mids, label, rotation=0,
                         verticalalignment='center', fontweight='bold',
                         fontsize='large')
           
             plt.tight_layout(h_pad=1)
-            fig.subplots_adjust(wspace = 0.04)
+            fig.subplots_adjust(wspace = 0.01)
             # plt.show()
 
             return new_data
@@ -862,7 +871,7 @@ class Quanti(object):
             return new_data
 
     def flags(self, vsh_cutoff:float, por_cutoff:float, sw_cutoff:float, 
-                        ref_unit:str='m', show_plot:'bool'=False, palette_op:str=None, figsize:slice=None):
+                        ref_unit:str='m', show_plot:bool=False, palette_op:str=None, figsize:slice=None):
 
         '''
 
@@ -956,21 +965,21 @@ class Quanti(object):
             # data = data.set_index('DEPTH')
             #.loc[(data.DEPTH >=self._ztop[0])&(data.DEPTH <=self._zbot[-1])]
             # .loc[(data.DEPTH >= data.DEPTH.min())&(data.DEPTH <=data.DEPTH.max())]
-            cluster1=np.repeat(np.expand_dims(data['ROCK_NET_FLAG'].values, 1), 100, 1)
+            cluster1 = np.repeat(np.expand_dims(data['ROCK_NET_FLAG'].values, 1), 100, 1)
             cluster1 = pd.DataFrame(cluster1)
-            cluster1 = cluster1.loc[(cluster1.index>=(data2['DEPTH'].index.min())) & (cluster1.index<=(data2['DEPTH'].index.max()))]
-            cluster2=np.repeat(np.expand_dims(data['RES_NET_FLAG'].values, 1), 100, 1)
+            cluster1 = cluster1.loc[(cluster1.index>=(data2[self._depth].index.min())) & (cluster1.index<=(data2[self._depth].index.max()))]
+            cluster2 = np.repeat(np.expand_dims(data['RES_NET_FLAG'].values, 1), 100, 1)
             cluster2 = pd.DataFrame(cluster2)
-            cluster2 = cluster2.loc[(cluster2.index>=(data2['DEPTH'].index.min())) & (cluster2.index<=(data2['DEPTH'].index.max()))]
-            cluster3=np.repeat(np.expand_dims(data['PAY_NET_FLAG'].values, 1), 100, 1)
+            cluster2 = cluster2.loc[(cluster2.index>=(data2[self._depth].index.min())) & (cluster2.index<=(data2[self._depth].index.max()))]
+            cluster3 = np.repeat(np.expand_dims(data['PAY_NET_FLAG'].values, 1), 100, 1)
             cluster3 = pd.DataFrame(cluster3)
-            cluster3 = cluster3.loc[(cluster3.index>=(data2['DEPTH'].index.min())) & (cluster3.index<=(data2['DEPTH'].index.max()))]
+            cluster3 = cluster3.loc[(cluster3.index>=(data2[self._depth].index.min())) & (cluster3.index<=(data2[self._depth].index.max()))]
           
             #logs to plot
-            logs = ['GR', 'RT', 'VShale', 'SW', 'Perm']
+            logs = [self._gr, self._rt, 'VShale', 'SW', 'Perm']
 
             #generate random colors
-            cycol = cycle('bgrcmk')
+            cycol = cycle('bgrycmk')
 
             span = 1
             cmap=plt.get_cmap(self._pale)
@@ -998,6 +1007,9 @@ class Quanti(object):
                     ax[i].fill_betweenx(data[self._depth], gr_base, data[self._gr], where=data[self._gr]<=gr_base, facecolor='yellow', linewidth=0)
                     ax[i].fill_betweenx(data[self._depth],data[self._gr], gr_base, where=data[self._gr]>=gr_base, facecolor='brown', linewidth=0)
 
+                if i > 0:
+                    ax[i].set_yticklabels([])
+
                 if i ==3:
                     ax[i].invert_xaxis()
                     ax[i].fill_betweenx(data[self._depth], data[logs[i]].max(), data[logs[i]], where=data[logs[i]]<=data[logs[i]].max(), facecolor='lightblue', interpolate=True, linewidth=0)
@@ -1016,49 +1028,51 @@ class Quanti(object):
                 ax[i].spines['top'].set_edgecolor(next(cycol))
                 ax[i].spines["top"].set_position(("axes", 1.02)); ax[i].xaxis.set_ticks_position("top")
                 ax[i].xaxis.set_label_position("top")
-                ax[i].hlines([t for t in self._ztop], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid')
-                ax[i].hlines([b for b in self._zbot], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid')
+                ax[i].hlines([t for t in self._ztop], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
+                ax[i].hlines([b for b in self._zbot], xmin=data[logs[i]].min(), xmax=data[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
 
 
             #for rhob
             ax[5].minorticks_on()
             ax[5].yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
             ax[5].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
+            ax[5].set_yticklabels([])
+            ax[5].set_xticklabels([]);ax[5].set_xticks([])
             nphi_ = ax[5].twiny()
             nphi_.grid(which='major', linestyle='-', color='darkgrey')
-            nphi_.plot(data['RHOB'], data[self._depth], color='red', linestyle='-', linewidth=0.5)
-            nphi_.set_xlim(data['RHOB'].min(), data['RHOB'].max())
+            nphi_.plot(data[self._rhob], data[self._depth], color='red', linestyle='-', linewidth=0.5)
+            nphi_.set_xlim(data[self._rhob].min(), data[self._rhob].max())
             nphi_.set_ylim(data[self._depth].min(), data[self._depth].max())
             nphi_.invert_yaxis()
             nphi_.xaxis.label.set_color('red')
             nphi_.tick_params(axis='x', colors='red')
             nphi_.spines['top'].set_edgecolor('red')
-            nphi_.set_xlabel('RHOB', color='red')
+            nphi_.set_xlabel(self._rhob, color='red')
             nphi_.spines["top"].set_position(("axes", 1.02))
             nphi_.xaxis.set_ticks_position("top")
             nphi_.xaxis.set_label_position("top")
-            nphi_.set_xticks(list(np.linspace(data['RHOB'].min(), data['RHOB'].max(), num=3, dtype='float32')))
+            nphi_.set_xticks(list(np.linspace(data[self._rhob].min(), data[self._rhob].max(), num=3)))
             
             #for nphi
             rhob_ = ax[5].twiny()
-            rhob_.plot(data['NPHI'], data[self._depth], 'b--', linewidth=0.5)
+            rhob_.plot(data[self._nphi], data[self._depth], 'b--', linewidth=0.5)
             rhob_.invert_xaxis()
-            rhob_.set_xlim(data['NPHI'].max(), data['NPHI'].min())
+            rhob_.set_xlim(data[self._nphi].max(), data[self._nphi].min())
             rhob_.set_ylim(data[self._depth].min(), data[self._depth].max())
             rhob_.invert_yaxis()
             rhob_.xaxis.label.set_color('blue')
             rhob_.tick_params(axis='x', colors='blue')
             rhob_.spines['top'].set_edgecolor('blue')
-            rhob_.set_xlabel('NPHI', color='blue')
-            rhob_.spines["top"].set_position(("axes", 1.08))
+            rhob_.set_xlabel(self._nphi, color='blue')
+            rhob_.spines["top"].set_position(("axes", 1.05))
             rhob_.xaxis.set_ticks_position("top")
             rhob_.xaxis.set_label_position("top")
-            rhob_.set_xticks(list(np.linspace(data['NPHI'].min(), data['NPHI'].max(), num=3, dtype='float32')))
+            rhob_.set_xticks(list(np.linspace(data[self._nphi].min(), data[self._nphi].max(), num=3)))
             
             #setting up the nphi and rhob fill
             #inspired from 
-            x2=data['RHOB']
-            x1=data['NPHI']
+            x2=data[self._rhob]
+            x1=data[self._nphi]
             
             x = np.array(rhob_.get_xlim())
             z = np.array(nphi_.get_xlim())
@@ -1070,6 +1084,8 @@ class Quanti(object):
 
             #for PHIT
             ax[6].minorticks_on()
+            ax[6].set_yticklabels([])
+            ax[6].set_xticklabels([]);ax[6].set_xticks([])
             ax[6].yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
             ax[6].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
             ax[6].hlines([t for t in self._ztop], xmin=data["PHIT"].min(), xmax=data["PHIT"].max(), colors='black', linestyles='solid')
@@ -1077,7 +1093,7 @@ class Quanti(object):
             phi_ = ax[6].twiny()
             phi_.grid(which='major', linestyle='-', linewidth=0.5, color='darkgrey')
             phi_.plot(data['PHIT'], data[self._depth], color='blue', linewidth=0.5)
-            # phi_.fill_betweenx(data[self._depth], data['PHIT'].min(), data["PHIT"], where=data['PHIT']>=data['PHIT'].min(), facecolor='lightblue', interpolate=True, linewidth=0)
+            phi_.fill_betweenx(data[self._depth], data['PHIE'].max(), data['PHIT'], color='slategray', linewidth=1.)          
             phi_.set_xlim(data['PHIT'].min(), data['PHIT'].max())
             phi_.set_ylim(data[self._depth].min(), data[self._depth].max())
             phi_.invert_yaxis()
@@ -1088,13 +1104,13 @@ class Quanti(object):
             phi_.spines["top"].set_position(("axes", 1.02))
             phi_.xaxis.set_ticks_position("top")
             phi_.xaxis.set_label_position("top")
-            phi_.set_xticks(list(np.linspace(data['PHIT'].min(), data['PHIT'].max(), num=3, dtype='float32')))
+            phi_.set_xticks(list(np.linspace(data['PHIT'].min(), data['PHIT'].max(), num=3)))
             
             
             #for PHIE
             phi = ax[6].twiny()
             phi.plot(data['PHIE'], data[self._depth], color='red', linewidth=0.5)
-            phi.fill_betweenx(data[self._depth], data['PHIE'].max(), data["PHIE"], where=data['PHIE']<=data['PHIE'].max(), facecolor='lightblue', linewidth=0)
+            phi.fill_betweenx(data[self._depth], data["PHIE"], data['PHIE'].max(), color='lightblue')
             phi.set_xlim(data['PHIE'].min(), data['PHIE'].max())
             phi.set_ylim(data[self._depth].min(), data[self._depth].max())
             phi.invert_yaxis()
@@ -1103,10 +1119,10 @@ class Quanti(object):
             phi.tick_params(axis='x', colors='red')
             phi.spines['top'].set_edgecolor('red')
             phi.set_xlabel('PHIE', color='red')
-            phi.spines["top"].set_position(("axes", 1.08))
+            phi.spines["top"].set_position(("axes", 1.05))
             phi.xaxis.set_ticks_position("top")
             phi.xaxis.set_label_position("top")
-            phi.set_xticks(list(np.linspace(data['PHIE'].min(), data['PHIE'].max(), num=3, dtype='float32')))
+            phi.set_xticks(list(np.linspace(data['PHIE'].min(), data['PHIE'].max(), num=3)))
 
             #formation subplot
             ax[7].set_ylim(data[self._depth].min(), data[self._depth].max());
@@ -1115,23 +1131,24 @@ class Quanti(object):
             ax[7].set_xticks([])
             ax[7].set_yticklabels([])
             ax[7].set_xticklabels([])
-            ax[7].hlines([t for t in self._ztop], xmin=0, xmax=1, colors='black', linestyles='solid')
-            ax[7].hlines([b for b in self._zbot], xmin=0, xmax=1, colors='black', linestyles='solid')
+            ax[7].hlines([t for t in self._ztop], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
+            ax[7].hlines([b for b in self._zbot], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
             formations = ax[7]
 
 
             # #delineating zones
             cycol = cycle('bgrcmk')
             color = [choice(next(cycol)) for i in range(len(self._zonename))]
+            np.random.shuffle(color)
             for i in ax:
                 for t,b, c in zip(self._ztop, self._zbot, color):
-                    i.axhspan(t, b, color=c, alpha=0.1)
+                    i.axhspan(t, b, color=c, alpha=0.2)
                     # pass
 
 
             #adding zone names
             for label, fm_mids in zip(self._zonename, self._f_mids):
-                formations.text(0.5, fm_mids, label, rotation=90,
+                formations.text(0.5, fm_mids, label, rotation=0,
                         verticalalignment='center', fontweight='bold',
                         fontsize='large')
             
@@ -1162,7 +1179,7 @@ class Quanti(object):
                 # ax[i].hlines([b for b in self._zbot], xmin=0, xmax=1, colors='black', linestyles='solid')
             
             plt.tight_layout(h_pad=1)
-            fig.subplots_adjust(wspace = 0.04)
+            fig.subplots_adjust(wspace = 0.01)
 
 
             return new_data
@@ -1181,12 +1198,12 @@ class Quanti(object):
         '''
 
         Computes the
-                ...net, grossand not net thicknesses
-                ...net-to-gross 
-                ...average volume of shale
-                ...average porosity value
-                ...bulk volume of water
-                ...water saturation
+                *net, grossand not net thicknesses
+                *net-to-gross 
+                *average volume of shale
+                *average porosity value
+                *bulk volume of water
+                *water saturation
         for each of the three flags {ROCK, RES, PAY}
         
         Parameter
@@ -1224,11 +1241,13 @@ class Quanti(object):
         avg_sw = list()
         not_net = list()
 
-        for d, i in zip(new_data, self._zonename):
+        np.random.seed(2)
 
+        for d, i in zip(new_data, self._zonename):
+            # np.random.seed(2)
             # top and bottom and unit
-            top_ = d['DEPTH'].min()
-            bot_ = d['DEPTH'].max()
+            top_ = d[self._depth].min()
+            bot_ = d[self._depth].max()
             top.append([top_, top_, top_])
             bot.append([bot_, bot_, bot_])
             unit.append([self._ref, self._ref, self._ref])
@@ -1240,7 +1259,7 @@ class Quanti(object):
             net_to_gross.append([ntg_rock, ntg_res, ntg_pay])
 
             #gross
-            gross_ = d['DEPTH'].max() - d['DEPTH'].min()
+            gross_ = d[self._depth].max() - d[self._depth].min()
             gross.append([gross_, gross_, gross_])
 
             #net
