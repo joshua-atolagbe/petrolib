@@ -1,0 +1,32 @@
+[build-system]
+requires = ['matplotlib', 'pandas', 'numpy', 'lasio',
+			'scipy', 'seaborn', 'geopandas', 'contextily'
+		]
+build-backend = "setuptools.build_meta"
+
+[project]			
+name = "petrolib"
+version = "1.2.4.1"
+authors = [
+	{name="Joshua Atolagbe", email="atolagbejoshua2@gmail.com"},	
+]
+description = "A Python Package for Petrophysical Evaluation"
+readme = "README.md"
+requires-python = ">=3.5"
+license = {file = "LICENSE.txt"}
+classifiers = [
+		"Programming Language :: Python :: 3",
+        	"License :: OSI Approved :: MIT License",
+        	"Operating System :: OS Independent",
+    ]
+
+[project.urls]
+"Homepage" = "https://github.com/mayor-of-geology/petrolib"
+"Bug Tracker" = "https://github.com/mayor-of-geology/petrolib/issues"
+
+[tool.setuptools.packages.find]
+namespaces = true
+where = ["src"]
+
+[tool.setuptools]
+include-package-data = true

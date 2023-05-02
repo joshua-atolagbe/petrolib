@@ -1,0 +1,13 @@
+lith,lith_num,hatch,color
+Sandstone,1,..,#ffff00
+Sandstone/Shale,2,-.,#ffe119
+Shale,3,--,#bebebe
+Marl,4,,#7cfc00
+Dolomite,5,-/,#8080ff
+Limestone,6,+,#80ffff
+Chalk,7,..,#80ffff
+Halite,8,x,#7ddfbe
+Anhydrite,9,,#ff80ff
+Tuff,10,||,#ff8c00
+Coal,11,,black
+Basement,12,-|,#ef138a
