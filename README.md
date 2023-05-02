@@ -78,5 +78,5 @@ ps = pp.paySummary(name='15-9_F1A')
 pp.save(file_name='Pay Summary')
 ```
 
-Tutorial repo [link](https://github.com/mayor-of-geology/tutorials)
+Tutorial repo [link](https://github.com/joshua-atolagbe/tutorials)
 
