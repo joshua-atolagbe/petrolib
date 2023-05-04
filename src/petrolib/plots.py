@@ -504,10 +504,10 @@ class Zonation:
             
             if logs[i] == 'RT' or logs[i] == 'ILD':
                 # for resistivity, semilog plot
-                ax[i].semilogx(self._df[logs[i]], self._df[depth], color=color[i])
+                ax[i].semilogx(self._df[logs[i]], self._df[depth], color=color[i], linewidth=1.)
             else:
                 # for non-resistivity, normal plot
-                ax[i].plot(self._df[logs[i]], self._df[depth], color=color[i])
+                ax[i].plot(self._df[logs[i]], self._df[depth], color=color[i], linewidth=1.)
 
             if logs[i] == 'NPHI':
                 ax[i].invert_xaxis()
@@ -603,10 +603,10 @@ def plotLog(df:pd.DataFrame, depth:str, logs:List[str], top:float, bottom:float,
                 np.random.shuffle(color)
                 if logs[i] == 'RT' or logs[i] == 'ILD':
                     # for resistivity, semilog plot
-                    ax[i].semilogx(df[logs[i]], df[depth], color=color[i])
+                    ax[i].semilogx(df[logs[i]], df[depth], color=color[i], linewidth=1.)
                 else:
                     # for non-resistivity, normal plot
-                    ax[i].plot(df[logs[i]], df[depth], color=color[i])
+                    ax[i].plot(df[logs[i]], df[depth], color=color[i], linewidth=1.)
 
                 if logs[i] == 'NPHI' or logs[i] == 'PHIE':
                     ax[i].invert_xaxis()
@@ -628,10 +628,10 @@ def plotLog(df:pd.DataFrame, depth:str, logs:List[str], top:float, bottom:float,
                 np.random.shuffle(color)
                 if i == 'RT' or i == 'ILD':
                     # for resistivity, semilog plot
-                    plt.semilogx(df[i], df[depth], color=next(cycol))
+                    plt.semilogx(df[i], df[depth], color=next(cycol), linewidth=1.)
                 else:
                         # for non-resistivity, normal plot
-                    plt.plot(df[i], df[depth], color=next(cycol))
+                    plt.plot(df[i], df[depth], color=next(cycol), linewidth=1.)
 
                 if i == 'NPHI' or i == 'PHIE':
                     plt.xlim(df[i].max(), df[i].min())
@@ -989,16 +989,16 @@ def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom
                 for ii in range(len(j)):
                     if logs[i][ii] == 'RT' or logs[i][ii] == 'ILD':
                         # for resistivity, semilog plot
-                        ax[i].semilogx(df[logs[i][ii]], df[depth], color=color[-i])
+                        ax[i].semilogx(df[logs[i][ii]], df[depth], color=color[-i], linewidth=1.)
 
                     if ii == 0:# and logs[i][ii] != 'RT':
                         # for non-resistivity, normal plot
-                        ax[i].plot(df[logs[i][ii]], df[depth], color=color[ii])
+                        ax[i].plot(df[logs[i][ii]], df[depth], color=color[ii], linewidth=1.)
                         
                         # ax[ii].set_xticklabels([]);  ax[ii].set_xticks([])
                         ax[i].set_xticklabels([]);  ax[i].set_xticks([])
                     if ii >= 1:# or logs[i][ii] != 'RT':
-                        ax[i].twiny().plot(df[logs[i][ii]], df[depth], color=color[ii])    
+                        ax[i].twiny().plot(df[logs[i][ii]], df[depth], color=color[ii], linewidth=1.)    
                         ax[i].set_xticklabels([]);  ax[i].set_xticks([])                    
                     
                     
@@ -1039,11 +1039,11 @@ def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom
                 np.random.shuffle(color)
                 if logs[i] == 'RT' or logs[i] == 'ILD':
                     # for resistivity, semilog plot
-                    ax[i].semilogx(df[logs[i]], df[depth], color=color[i])
+                    ax[i].semilogx(df[logs[i]], df[depth], color=color[i], linewidth=1.)
                     
                 else:
                     # for non-resistivity, normal plot
-                    ax[i].plot(df[logs[i]], df[depth], color=color[i])
+                    ax[i].plot(df[logs[i]], df[depth], color=color[i], linewidth=1.)
 
                 if logs[i] == 'NPHI' or logs[i] == 'PHIE':
                     ax[i].invert_xaxis()
@@ -1068,10 +1068,10 @@ def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom
                 np.random.shuffle(color)
                 if i == 'RT' or i == 'ILD':
                     # for resistivity, semilog plot
-                    plt.semilogx(df[i], df[depth], color=color[idxi])
+                    plt.semilogx(df[i], df[depth], color=color[idxi], linewidth=1.)
                 else:
                         # for non-resistivity, normal plot
-                    plt.plot(df[i], df[depth], color=color[idxi])
+                    plt.plot(df[i], df[depth], color=color[idxi], linewidth=1.)
 
                 if i == 'NPHI' or i == 'PHIE':
                     plt.xlim(df[i].max(), df[i].min())
@@ -1101,7 +1101,7 @@ def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom
                         ax.set_xticklabels([]); ax.set_xticks([])
 
                     if idxii >= 1:
-                        ax.twiny().plot(df[logs[idxi][idxii]], df[depth], color=color[idxii])    
+                        ax.twiny().plot(df[logs[idxi][idxii]], df[depth], color=color[idxii], linewidth=1.)    
                         ax.set_xticklabels([]);  ax.set_xticks([])
 
                     ax.yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
@@ -1147,10 +1147,10 @@ def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom
                 np.random.shuffle(color)
                 if i == 'RT' or i == 'ILD':
                     # for resistivity, semilog plot
-                    ax[idxi].semilogx(df[i], df[depth], color=color[idxi])
+                    ax[idxi].semilogx(df[i], df[depth], color=color[idxi], linewidth=1.)
                 else:
                         # for non-resistivity, normal plot
-                    ax[idxi].plot(df[i], df[depth], color=color[idxi])
+                    ax[idxi].plot(df[i], df[depth], color=color[idxi], linewidth=1.)
 
                 if i == 'NPHI' or i == 'PHIE':
                     ax[idxi].xlim(df[i].max(), df[i].min())
@@ -1178,7 +1178,7 @@ def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom
                         ax[idxi].plot(df[logs[idxi][idxii]], df[depth], color=color[idxii], linewidth=1.)
                         ax[idxi].set_xticklabels([]); ax[idxi].set_xticks([])
                     if idxii >= 1:
-                        ax[idxi].twiny().plot(df[logs[idxi][idxii]], df[depth], color=color[idxii])  
+                        ax[idxi].twiny().plot(df[logs[idxi][idxii]], df[depth], color=color[idxii], linewidth=1.)  
                         ax[idxii].twiny().set_xticklabels([]);  ax[idxii].twiny().set_xticks([])  
 
                     ax[idxi].yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
@@ -1314,16 +1314,16 @@ def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom
                 for ii in range(len(j)):
                     if logs[i][ii] == 'RT' or logs[i][ii] == 'ILD':
                         # for resistivity, semilog plot
-                        ax[i].semilogx(df[logs[i][ii]], df[depth], color=color[-i])
+                        ax[i].semilogx(df[logs[i][ii]], df[depth], color=color[-i], linewidth=1.)
 
                     if ii == 0:# and logs[i][ii] != 'RT':
                         # for non-resistivity, normal plot
-                        ax[i].plot(df[logs[i][ii]], df[depth], color=color[ii])
+                        ax[i].plot(df[logs[i][ii]], df[depth], color=color[ii], linewidth=1.)
                         
                         # ax[ii].set_xticklabels([]);  ax[ii].set_xticks([])
                         ax[i].set_xticklabels([]);  ax[i].set_xticks([])
                     if ii >= 1:# or logs[i][ii] != 'RT':
-                        ax[i].twiny().plot(df[logs[i][ii]], df[depth], color=color[ii])    
+                        ax[i].twiny().plot(df[logs[i][ii]], df[depth], color=color[ii], linewidth=1.)    
                         ax[i].set_xticklabels([]);  ax[i].set_xticks([])        
                     
                     
@@ -1364,11 +1364,11 @@ def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom
                 np.random.shuffle(color)
                 if logs[i] == 'RT' or logs[i] == 'ILD':
                     # for resistivity, semilog plot
-                    ax[i].semilogx(df[logs[i]], df[depth], color=color[i])
+                    ax[i].semilogx(df[logs[i]], df[depth], color=color[i], linewidth=1.)
                     
                 else:
                     # for non-resistivity, normal plot
-                    ax[i].plot(df[logs[i]], df[depth], color=color[i])
+                    ax[i].plot(df[logs[i]], df[depth], color=color[i], linewidth=1.)
 
                 if logs[i] == 'NPHI' or logs[i] == 'PHIE':
                     ax[i].invert_xaxis()
@@ -1393,10 +1393,10 @@ def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom
                 np.random.shuffle(color)
                 if i == 'RT' or i == 'ILD':
                     # for resistivity, semilog plot
-                    plt.semilogx(df[i], df[depth], color=color[idxi])
+                    plt.semilogx(df[i], df[depth], color=color[idxi], linewidth=1.)
                 else:
                         # for non-resistivity, normal plot
-                    plt.plot(df[i], df[depth], color=color[idxi])
+                    plt.plot(df[i], df[depth], color=color[idxi], linewidth=1.)
 
                 if i == 'NPHI' or i == 'PHIE':
                     plt.xlim(df[i].max(), df[i].min())
@@ -1427,7 +1427,7 @@ def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom
                         ax.set_xticklabels([]); ax.set_xticks([])
 
                     if idxii >= 1:
-                        ax.twiny().plot(df[logs[idxi][idxii]], df[depth], color=color[idxii])    
+                        ax.twiny().plot(df[logs[idxi][idxii]], df[depth], color=color[idxii], linewidth=1.)    
                         ax.set_xticklabels([]);  ax.set_xticks([])
 
                     ax.yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
