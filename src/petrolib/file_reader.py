@@ -59,7 +59,6 @@ def load_las(file:Path|str, return_csv:bool=False, curves:list|tuple=None) -> la
 
         raise FileNotFoundError(f'{file} path does not exists.')
 
-        # raise TypeError(f'{file} is not a LAS file')
 
     las = lasio.read(str(file))
 
@@ -79,7 +78,7 @@ def load_las(file:Path|str, return_csv:bool=False, curves:list|tuple=None) -> la
                     
             except:
                 
-                raise MnemonicError('Check data. Log curve mnemonic not passed correctly.')
+                raise MnemonicError('Check data. A log curve mnemonic was not passed correctly.')
         
             df = df.filter(curves, axis=1)
             
