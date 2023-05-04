@@ -19,6 +19,8 @@ classifiers = [
         	"License :: OSI Approved :: MIT License",
         	"Operating System :: OS Independent",
     ]
+dependencies = ['matplotlib', 'pandas', 'numpy', 'lasio',
+			'scipy', 'seaborn', 'geopandas', 'contextily']
 
 [project.urls]
 "Homepage" = "https://github.com/mayor-of-geology/petrolib"
