@@ -10,6 +10,7 @@ trim
 model_facies
 
 '''
+from __future__ import annotations
 
 from warnings import filterwarnings
 filterwarnings('ignore')

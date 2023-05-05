@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]			
 name = "petrolib"
-version = "1.2.4.1"
+version = "1.2.5"
 authors = [
 	{name="Joshua Atolagbe", email="atolagbejoshua2@gmail.com"},	
 ]
@@ -23,8 +23,8 @@ dependencies = ['matplotlib', 'pandas', 'numpy', 'lasio',
 			'scipy', 'seaborn', 'geopandas', 'contextily']
 
 [project.urls]
-"Homepage" = "https://github.com/mayor-of-geology/petrolib"
-"Bug Tracker" = "https://github.com/mayor-of-geology/petrolib/issues"
+"Homepage" = "https://github.com/joshua-atolagbe/petrolib"
+"Bug Tracker" = "https://github.com/joshua-atolagbe/petrolib/issues"
 
 [tool.setuptools.packages.find]
 namespaces = true

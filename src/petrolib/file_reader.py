@@ -6,7 +6,7 @@ Functions
 load_las
 load_table
 '''
-
+from __future__ import annotations
 from pathlib import Path
 from warnings import filterwarnings
 filterwarnings('ignore')

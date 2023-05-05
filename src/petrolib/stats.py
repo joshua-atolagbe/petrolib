@@ -11,6 +11,7 @@ displayFreq
 
 '''
 
+from __future__ import annotations
 
 from warnings import filterwarnings
 filterwarnings('ignore')

@@ -193,7 +193,7 @@ class Quanti(object):
 
         return self._results, data
 
-    def vshale(self, method:str='linear', show_plot:bool=False, palette_op:str=None, figsize:slice=None):
+    def vshale(self, method:str='linear', show_plot:bool=False, palette_op:str=None, figsize:tuple=None):
         
         '''
 
@@ -214,7 +214,7 @@ class Quanti(object):
         palette_op: str default None
             Palette option for to color code vshale plot. Check https://matplotlib.org/stable/tutorials/colors/colormaps.html
 
-        figsize: slice default None
+        figsize: tuple default None
             Size of plot
 
         Returns
@@ -357,7 +357,7 @@ class Quanti(object):
             return new_data
 
     def porosity(self, method:str='density', rhob_shale:float=2.4, rhob_fluid:float=1.,
-                     rhob_matrix:float=2.65, fzs:float=None, show_plot:bool=False, figsize:slice=None):
+                     rhob_matrix:float=2.65, fzs:float=None, show_plot:bool=False, figsize:tuple=None):
 
         '''
         Computes the effective and total porosities using the 'density' and Wyllie's 'sonic' method. 
@@ -383,7 +383,7 @@ class Quanti(object):
         show_plot : bool default False
             Display plot if True.. Plots RHOB, VSH, PHIE/PHIT and Zone track
 
-        figsize: slice default None
+        figsize: tuple default None
             Size of plot
 
         Returns
@@ -551,7 +551,7 @@ class Quanti(object):
             return new_data
 
     def water_saturation(self, method:str='archie', rw:float=0.03, a:float=1., m:float=2., n:float=2.,
-                                 show_plot:bool=False, figsize:slice=None):
+                                 show_plot:bool=False, figsize:tuple=None):
 
                 
         '''
@@ -579,7 +579,7 @@ class Quanti(object):
         show_plot : bool default False
             Display plot if True.. Plots RT, SW, PHIE/PHIT and Zone track
 
-        figsize: slice default None
+        figsize: tuple default None
             Size of plot
 
         Returns
@@ -748,7 +748,7 @@ class Quanti(object):
 
             return new_data
 
-    def permeability(self, show_plot:bool=False, figsize:slice=None):
+    def permeability(self, show_plot:bool=False, figsize:tuple=None):
 
         '''
 
@@ -760,7 +760,7 @@ class Quanti(object):
         show_plot : bool default False
             Display plot if True.. Plots PHIE, Permeability and Zone track
 
-        figsize: slice default None
+        figsize: tuple default None
             Size of plot
 
         Returns
@@ -871,7 +871,7 @@ class Quanti(object):
             return new_data
 
     def flags(self, vsh_cutoff:float, por_cutoff:float, sw_cutoff:float, 
-                        ref_unit:str='m', show_plot:bool=False, palette_op:str=None, figsize:slice=None):
+                        ref_unit:str='m', show_plot:bool=False, palette_op:str=None, figsize:tuple=None):
 
         '''
 
@@ -901,7 +901,7 @@ class Quanti(object):
         palette_op : str default None
              palette option for VSH coloring. Check https://matplotlib.org/stable/tutorials/colors/colormaps.html for availabel palette options
 
-        figsize: slice default None
+        figsize: tuple default None
             Size of plot
 
         Returns
