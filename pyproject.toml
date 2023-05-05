@@ -12,7 +12,7 @@ authors = [
 ]
 description = "A Python Package for Petrophysical Evaluation"
 readme = "README.md"
-requires-python = ">=3.5"
+requires-python = ">=3.7"
 license = {file = "LICENSE.txt"}
 classifiers = [
 		"Programming Language :: Python :: 3",
