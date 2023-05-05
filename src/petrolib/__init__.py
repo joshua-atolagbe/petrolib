@@ -1,4 +1,4 @@
-__version__ = '1.2.4.1'
+__version__ = '1.2.5'
 
 __all__ = [
     'file_reader', 'interp', 'plots', 'procs', 'stats', 'workflow'
