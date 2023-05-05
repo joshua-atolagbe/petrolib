@@ -33,6 +33,13 @@ The package is designed to handle:
 * Neutron-density cross plot
 * Pickett Plot
 
+### Installation
+
+```
+pip install petrolib
+```
+
+
 ### Quick tutorial
 ```
 #import necessaries
