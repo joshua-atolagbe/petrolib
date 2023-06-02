@@ -1,10 +1,6 @@
 '''
 Python module for reservoir interpretation from plots
 
-Function
---------
-crossPlot
-picketPlot
 '''
 from __future__ import annotations
 import seaborn as sns
@@ -22,13 +18,11 @@ def crossPlot(df:pd.DataFrame, column_x:str, column_y:str, hue:str=None,
     Plots the cross plot relationship of density against porosity on compatible scales
     to facilitate in identification of reservoir type and its fluid type.
 
-    Reference
-    ---------
     This code was initially written by Yohanes Nuwara but was modified to give
     the resulting plot a more classic and pretty view.
 
-    Argument
-    --------
+    Parameters
+    ----------
     df : pd.DataFrame
         Dataframe of well
 
@@ -143,8 +137,8 @@ def picketPlot(df:pd.DataFrame, rt:str='RT', por:str='NPHI', rwa:float=0.018,
     and porosity logs are plotted on a logarithmic scales to evaluate formation characteristics of conventional, granular reservoirs.
     Read more here: https://wiki.seg.org/wiki/Pickett_plot
 
-    Argument
-    --------
+    Parameters
+    ----------
     df : pd.DataFrame
         Dataframe
 

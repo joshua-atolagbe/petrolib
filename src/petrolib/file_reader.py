@@ -1,10 +1,8 @@
 '''
-A Python module for handling th importation of files into code environment
+A Python module for loading data into code environment.
 
-Functions
----------
-load_las
-load_table
+Handle files with extension such LAS, TSV, CSV or TXT
+
 '''
 from __future__ import annotations
 from pathlib import Path
@@ -41,10 +39,10 @@ def load_las(file:Path|str, return_csv:bool=False, curves:list|tuple=None) -> la
     Example
     -------
 
-    #return both dataframe containing only ['GR','RT', 'RHOB'] curves and the lasio object
+    >>> #return both dataframe containing only ['GR','RT', 'RHOB'] curves and the lasio object
     >>> df, las = load_las(well_path, return_csv=True, curves=['GR', 'RT', 'RHOB'])
 
-    #return only LAS object
+    >>> #return only LAS object
     >>> las = load_las(well_path)
 
     '''
@@ -138,10 +136,10 @@ def load_table(file:Path|str, curves:list[str]=None, delimiter:str=None, header:
     -------
     >>> well_path = Path(r"C:\Users\USER\Documents\petrolib\test\petrolib\petrolib\15_9-19.csv")
 
-    #loads all logs
+    >>> #loads all logs
     >>> df = load_table(well_path)
     
-    #loads specific
+    >>> #loads specific
     >>> df = load_table(well_path, ['GR', 'RT'], skiprows=[1])
     >>> df
 

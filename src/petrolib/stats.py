@@ -1,13 +1,5 @@
 '''
-Python module for handling statistics
-
-Class
------
-Correlation
-
-Function
---------
-displayFreq
+Python module for handling data statistics
 
 '''
 
@@ -29,26 +21,12 @@ class Correlation:
     r"""
     A correlation class for pearson and chatterjee method of statistical significance. 
     
-    Parameter
-    ---------
+    Parameters
+    ----------
 
     df : pd.DataFrame
         Takes in only the dataframe
 
-    Method
-    ------
-    corr(method='chatterjee') : calculates the correlation coefficients
-
-    plot_heatmap(figsize=(13, 8)) : plots correlation heatmap
-
-    Return
-    -------
-
-    `petrolib.stats.Correlation` object
-
-    Example
-    -------
-    >>> corr = Correlation(df)
     
     """
     def __init__(self, dataframe:pd.DataFrame):
@@ -80,8 +58,8 @@ class Correlation:
         Function to calculate the linear (Pearson's) and non-linear (Chatterjee's) relationships between log curves.
         Relationship between well logs are usually non-linear.
 
-        Argument
-        --------
+        Parameters
+        ----------
 
         method : str, default 'chatterjee'
               Method of correlation. {'chatterjee', 'pearsonr', 'linear', 'nonlinear'}
@@ -89,8 +67,8 @@ class Correlation:
               * 'linear' is the same as 'pearsonr'
               * 'nonlinear' is the same as 'chatterjee'
         
-        Return
-        ------
+        Returns
+        -------
         Correlation matrix of all possible log curves combination
 
         Example
@@ -129,8 +107,8 @@ class Correlation:
         r'''
         Plots the heat map of Correlation Matrix
 
-        Argument
-        --------
+        Parameters
+        ----------
         title : str
             Title of plot
         
@@ -160,8 +138,8 @@ def displayFreq(df:pd.DataFrame, *cols:tuple[str], bins:int=12, figsize:slice=(8
     '''
     Function to plot the frequency distribution of well log curves
     
-    Argument
-    --------
+    Parameters
+    ----------
     df : pd.DataFrame
         Dataframe of data
         

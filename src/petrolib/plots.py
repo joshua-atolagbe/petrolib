@@ -1,22 +1,9 @@
 '''
-A Python module for displaying log plots
+A Python module for displaying log, lithofacies and zonation plots
 
-Class
------
-Zonation
-
-Function
---------
-plotLoc
-tripleCombo
-plotLog
-plotZoneCombo
-plotLogFacies
-plotLogs
 '''
+
 from __future__ import annotations
-
-
 import numpy as np
 import lasio
 import csv
@@ -37,10 +24,10 @@ def plotLoc(data:list[lasio.las.LASFile], shape_file:Path=None, area:str=None, f
     
     '''
     Plots location of wells
-    The longitude and latitude must be available in th LAS fils
+    The longitude and latitude must be available in the LAS files
     
-    Arguments
-    ---------
+    Parameters
+    ----------
 
     data : list
          List of lasio.las.LASFile objects
@@ -176,8 +163,8 @@ def tripleCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:st
     r'''
     Plots a three combo log of well data
 
-    Arguments
-    --------
+    Parameters
+    ----------
 
     data : pd.DataFrame
         Dataframe of data 
@@ -234,7 +221,7 @@ def tripleCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:st
     >>> from petrolib.plots import tripleCombo
     >>> # %matplotlib inline
     >>> tripleCombo(df, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB', ztop=3300,
-                         zbot=3450, res_thres=10, fill='right', palette_op='rainbow', limit='left')
+    >>>                     zbot=3450, res_thres=10, fill='right', palette_op='rainbow', limit='left')
     
     '''
         
@@ -405,9 +392,8 @@ class Zonation:
     >>> zones = Zonation(df, path='./well tops.csv')
     >>> zones = Zonation(df, zones = [{'RES_A':[3000, 3100]}, {'RES_B':[3300, 3400]}])
     
-    *get reservoir information by calling the Zonation object*
-
-    ztop = top ; zbot = base; zn = zonename ; fm = formation mids to place zone name in plot
+    >>> #get reservoir information by calling the Zonation object
+    >>> #ztop = top ; zbot = base; zn = zonename ; fm = formation mids to place zone name in plot
     >>> ztop, zbot, zn, fm = zones()
     
     '''
@@ -466,7 +452,7 @@ class Zonation:
         r'''
         Plots log curves with zonation track.
 
-        Attributes
+        Parameters
         ----------
 
         depth : str
@@ -558,10 +544,10 @@ class Zonation:
 def plotLog(df:pd.DataFrame, depth:str, logs:List[str], top:float, bottom:float, title:str='Log Plot', figsize:tuple=(8, 12)):
 
         r'''
-        Plots log curves singly. To plot overlay plots use `plots.plotLogs_` or `plots.plotLogFacies`
+        Plots log curves singly. To plot overlay plots use `plots.plotLogs` or `plots.plotLogFacies`
 
-        Argument
-        --------
+        Parameters
+        ----------
         df : pd.DataFrame
             Dataframe
 
@@ -585,7 +571,7 @@ def plotLog(df:pd.DataFrame, depth:str, logs:List[str], top:float, bottom:float,
 
         Example
         -------
-        >>> import petrolib.plots.plotLog
+        >>> from petrolib.plots import plotLog
         >>> plotLog('DEPTH', ['GR', 'RT', 'RHOB', 'NPHI', 'CALI'], 3300, 3600, 'Volve')
         >>> plotLog(df,'DEPTH', ['NPHI'], 2751, 2834.58, 'Fre-1')
         
@@ -656,8 +642,8 @@ def plotZoneCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:
     r'''
     Function for plotting three combo logs alongside the zonation/reservoir track
 
-    Arguments
-    --------
+    Parameters
+    ----------
 
     df : pd.DataFrame
         Dataframe of data 
@@ -718,7 +704,7 @@ def plotZoneCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:
     -------
     >>> from petrolib.plots import plotZoneCombo
     >>> plotZoneCombo(well11, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB', min(ztop), max(zbot),
-               ztop, zbot, zn, fill='both', limit=None, figsize=(13, 30), title='ATAGA-11')
+    >>>          ztop, zbot, zn, fill='both', limit=None, figsize=(13, 30), title='ATAGA-11')
     '''
     #getting logs from dataframe
     depth_log = data[depth]
@@ -899,8 +885,8 @@ def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom
     
     Plots overlayed/super-imposed log curves along with the facies. 
 
-    Argument
-    --------
+    Parameters
+    ----------
     df : pd.DataFrame
         Dataframe
 
@@ -1256,8 +1242,8 @@ def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom
     
     Plots overlayed/super-imposed log curves. 
 
-    Argument
-    --------
+    Parameters
+    ----------
     df : pd.DataFrame
         Dataframe
 
@@ -1281,8 +1267,8 @@ def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom
 
     Example
     -------
-    >>> plotLogs_(well11, 'DEPTH', ['GR', 'RT', ['RHOB', 'NPHI']], top=well11.DEPTH.min(),
-                            bottom=well11.DEPTH.max(), figsize=(9, 12), title='15-9-F1A')
+    >>> plotLogs(well11, 'DEPTH', ['GR', 'RT', ['RHOB', 'NPHI']], top=well11.DEPTH.min(),
+    >>>                        bottom=well11.DEPTH.max(), figsize=(9, 12), title='15-9-F1A')
 
     '''    
     df = df.copy()

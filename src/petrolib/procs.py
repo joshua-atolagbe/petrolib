@@ -1,13 +1,5 @@
 '''
-Python module for data processing
-
-
-Functions
----------
-set_alias
-process_data
-trim
-model_facies
+Python module for data processing and lithofacies modelling
 
 '''
 from __future__ import annotations
@@ -24,7 +16,7 @@ def set_alias(df:pd.DataFrame, DEPTH:str, GR:str, RT:str, NPHI:str, RHOB:str, DT
     r'''
     Function to rename the log curves in order to maintain petrophysics conventions
 
-    Arguments
+    Parameters
     ---------
 
     df : pd.DataFrame
@@ -56,7 +48,7 @@ def set_alias(df:pd.DataFrame, DEPTH:str, GR:str, RT:str, NPHI:str, RHOB:str, DT
     -------
     >>> df = set_alias(df, 'DEPT', 'GR','RES', 'NPHI', 'RHOB')
     >>> print(df.columns)
-        ['DEPTH', 'GR', 'RT', 'NPHI', 'RHOB']
+    >>> ['DEPTH', 'GR', 'RT', 'NPHI', 'RHOB']
     '''
 
     if DT != None:
@@ -170,7 +162,7 @@ def trim(df:pd.DataFrame, col:str, lower:int|float, upper:int|float):
     '''
     Function to preprocess data by trimming arbitrary values 
 
-    Arguments
+    Parameters
     ---------
     df : pd.DataFrame
     	Dataframe 
@@ -205,6 +197,9 @@ def model_facies(df:pd.DataFrame, gr:str, env:str='SS') -> pd.DataFrame:
     '''
     Models lithofacies from Gamma ray log specific to a particular environment
 
+    Parameters
+    ----------
+
     df : pd.DataFrame
         dataframe 
     
@@ -218,8 +213,8 @@ def model_facies(df:pd.DataFrame, gr:str, env:str='SS') -> pd.DataFrame:
 
     Example
     -------
-    >>>from petrolib.interp import model_facies
-    >>>model_facies(df, gr='GR', env='SS')
+    >>> from petrolib.interp import model_facies
+    >>> model_facies(df, gr='GR', env='SS')
     
     '''
 

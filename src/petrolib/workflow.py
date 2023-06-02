@@ -1,21 +1,6 @@
 '''
 Python module for petrophysics
 
-Classes
--------
-Quanti
-
-Methods
--------
-vshale
-porosity
-water_saturation
-permeability
-flags
-paySummary
-report
-save
-
 '''
 
 import pandas as pd
@@ -76,29 +61,26 @@ class Quanti(object):
     use_median; bool default None
         For cutoff. Whether to use median of GR in IGR/VSH computation or not. If None, uses either mean or average value
 
-    Returns
-    -------
-    Displays Pay Summary results as final output
 
     Example
     --------
-    #loading libraries/packages
+    >>> #loading libraries/packages
     >>> from petrolib.workflow import Quanti
     >>> from petrolib.plot import Zonation
     >>> from petrolib.file_reader import load_las
     >>> from pathlib import Path
 
-    #loading well file and zonation/tops file
+    >>> #loading well file and zonation/tops file
     >>> well_path = Path(r"./15_9-F-1A.LAS")
     >>> contact_path = Path(r"./well tops.csv")
 
     >>> las, df= load_las(well_path, curves=['GR', 'RT', 'NPHI', 'RHOB'], return_las=True)
 
-    #creating zonation class to extra info
+    >>> #creating zonation class to extra info
     >>> zones = Zonation(df, path=contact_path)
     >>> ztop, zbot, zn, fm = zones()
 
-    #creating quanti class
+    >>> #creating quanti class
     >>> pp = Quanti(df, zn, ztop, zbot, fm, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB', use_mean=True)
     """
 
@@ -203,10 +185,10 @@ class Quanti(object):
         ----------
         method : str default 'linear'
             Volume of Shale method. {'linear', 'clavier', 'larionov_ter', 'larionov_older', 'stieber_1', 'stieber_2, 'stieber_m_pliocene'}
-            *Linear = Gamma Ray Index (IGR)
-            *Larionov Tertiary
-            *Larionov Older Rocks
-            *Stieber (Miocene/Pliocene)
+            * Linear = Gamma Ray Index (IGR)
+            * Larionov Tertiary
+            * Larionov Older Rocks
+            * Stieber (Miocene/Pliocene)
 
         show_plot : bool default False
             Display plot if True.. Plots GR, VSH and Zone track
@@ -224,13 +206,13 @@ class Quanti(object):
 
         Example
         -------
-        # create Quanti class
+        >>> # create Quanti class
         >>> pp = Quanti(df, zn, ztop, zbot, fm, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB')
 
-        # display plot only
+        >>> # display plot only
         >>> pp.vshale(method='clavier', show_plot=True, palette_op='cubehelix', figsize=(9,12))
 
-        # display data only 
+        >>> # display data only 
         >>> x = pp.vshale(method='clavier')
         >>> x = pd.concat(x)
         >>> print(x)
@@ -393,13 +375,13 @@ class Quanti(object):
 
         Example
         -------
-        # create Quanti class
+        >>> # create Quanti class
         >>> pp = Quanti(df, zn, ztop, zbot, fm, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB')
 
-        # display plot only
+        >>> # display plot only
         >>> pp.porosity(method='density', show_plot=True, figsize=(10, 12))
 
-        # display data only 
+        >>> # display data only 
         >>> y = pp.porosity(method='density')
         >>> result = pd.concat(y)
         >>> print(result)
@@ -589,14 +571,14 @@ class Quanti(object):
 
         Example
         -------
-        # create Quanti class
+        >>> # create Quanti class
         >>> pp = Quanti(df, zn, ztop, zbot, fm, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB')
 
-        # display plot only
+        >>> # display plot only
         >>> pp.water_saturation(method='archie', show_plot=True, figsize=(10, 12))
 
 
-        # display data only 
+        >>> # display data only 
         >>> z = pp.water_saturation(method='archie')
         >>> result = pd.concat(z)
         >>> print(result)
@@ -752,7 +734,7 @@ class Quanti(object):
 
         '''
 
-        Computes the permeability
+        Computes the permeability.
         To use, must have called `vshale` and `porosity` and `water_saturation` methods
 
         Parameters
@@ -770,17 +752,17 @@ class Quanti(object):
 
         Example
         -------
-        # create Quanti class
+        >>> # create Quanti class
         >>> pp = Quanti(df, zn, ztop, zbot, fm, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB')
 
-        # display plot only
+        >>> # display plot only
         >>> pp.vshale(method='clavier')
         >>> pp.porosity(method='density')
         >>> pp.water_saturation(method='archie')
         >>> pp.permeability(show_plot=True, figsize=(9, 10))
 
 
-        # display data only 
+        >>> # display data only 
         >>> x = pp.vshale(method='clavier')
         >>> y = pp.porosity(method='density')
         >>> z = pp.water_saturation(method='archie')
@@ -883,11 +865,11 @@ class Quanti(object):
         Parameters
         ----------
 
-       vsh_method : float
-            Volume of Shale cutoff. Applied only to ['ROCK'] flag
+        vsh_method : float
+                Volume of Shale cutoff. Applied only to ['ROCK'] flag
 
-       por_cutoff : float
-            Porosity cutoff. Applied only to the ['ROCK', 'RES'] flags
+        por_cutoff : float
+                Porosity cutoff. Applied only to the ['ROCK', 'RES'] flags
 
         sw_cutoff : float
             Water Saturation cutoff. Applied only to the ['ROCK', 'RES', 'PAY] flags
@@ -899,7 +881,7 @@ class Quanti(object):
             Display plot if True.. Plots GR, RT, VSH, SW, Perm, NPHI/RHOB, PHIE/PHIT, ['ROCK', 'RES', 'PAY] flags and Zonation track
 
         palette_op : str default None
-             palette option for VSH coloring. Check https://matplotlib.org/stable/tutorials/colors/colormaps.html for availabel palette options
+            palette option for VSH coloring. Check https://matplotlib.org/stable/tutorials/colors/colormaps.html for availabel palette options
 
         figsize: tuple default None
             Size of plot
@@ -907,17 +889,17 @@ class Quanti(object):
         Returns
         ------
         Either/Both Dataframe containing the flags and the plot if show_plot=True  
-       
+    
 
         Example
         -------
-        # Create Quanti class
+        >>> # Create Quanti class
         >>> pp = Quanti(df, zn, ztop, zbot, fm, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB')
 
-        # Display plot only
+        >>> # Display plot only
         >>> pp.flags(por_cutoff=.12, vsh_cutoff=.5, sw_cutoff=0.8, show_plot=True, palette_op='cubehelix', figsize=(20, 15))
 
-        # Display data only 
+        >>> # Display data only 
         >>> y = pp.flags(por_cutoff=.12, vsh_cutoff=.5, sw_cutoff=0.8)
         >>> result = pd.concat(y)
         >>> print(result)
@@ -1137,7 +1119,7 @@ class Quanti(object):
 
 
             # #delineating zones
-            cycol = cycle('bgrcmk')
+            cycol = cycle('bgyrcmk')
             color = [choice(next(cycol)) for i in range(len(self._zonename))]
             np.random.shuffle(color)
             for i in ax:
@@ -1164,7 +1146,7 @@ class Quanti(object):
             cax = divider.append_axes("right", size="20%", pad=0.05)
             cbar = plt.colorbar(im, cax=cax)
             cbar.set_label((17*' ').join([
-                'Gross Pay', 'Net Pay'
+                'Gross Flag', 'Net Flag'
             ]))
             cbar.set_ticks(range(0,1)); cbar.set_ticklabels('')
 
@@ -1198,26 +1180,26 @@ class Quanti(object):
         '''
 
         Computes the
-                *net, grossand not net thicknesses
-                *net-to-gross 
-                *average volume of shale
-                *average porosity value
-                *bulk volume of water
-                *water saturation
+                * net, grossand not net thicknesses
+                * net-to-gross 
+                * average volume of shale
+                * average porosity value
+                * bulk volume of water
+                * water saturation
         for each of the three flags {ROCK, RES, PAY}
         
-        Parameter
-        ---------
+        Parameters
+        ----------
         name: str 
             Name of the well
 
-        Return
-        ------
+        Returns
+        -------
         Displays the Pay Summary Report table
 
         Example
         -------
-        pp.paySummary(name='15-9_F1A')
+        >>> pp.paySummary(name='15-9_F1A')
 
         '''
         self._name = name
@@ -1241,7 +1223,7 @@ class Quanti(object):
         avg_sw = list()
         not_net = list()
 
-        np.random.seed(2)
+        # np.random.seed(2)
 
         for d, i in zip(new_data, self._zonename):
             # np.random.seed(2)
@@ -1383,8 +1365,8 @@ class Quanti(object):
         '''
         A method to save the pay summary results into a excel file
 
-        Argument
-        --------
+        Parameters
+        ----------
         file_name : str
             name of to save the pay summary report as
         
