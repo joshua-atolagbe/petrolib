@@ -1,0 +1,7 @@
+plots
+---------------------
+
+.. automodule:: petrolib.plots
+   :members:
+   :undoc-members:
+   :show-inheritance:

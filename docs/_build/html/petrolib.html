@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>file_reader &mdash; Petrolib 1.2.5 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorial" href="tutorial.html" />
+    <link rel="prev" title="Modules" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Petrolib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">file_reader</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.file_reader.load_las"><code class="docutils literal notranslate"><span class="pre">load_las()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.file_reader.load_table"><code class="docutils literal notranslate"><span class="pre">load_table()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-petrolib.interp">interp</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.interp.crossPlot"><code class="docutils literal notranslate"><span class="pre">crossPlot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.interp.picketPlot"><code class="docutils literal notranslate"><span class="pre">picketPlot()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-petrolib.plots">plots</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.plots.Zonation"><code class="docutils literal notranslate"><span class="pre">Zonation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.plots.Zonation.df"><code class="docutils literal notranslate"><span class="pre">Zonation.df</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.plots.Zonation.zones"><code class="docutils literal notranslate"><span class="pre">Zonation.zones</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.plots.Zonation.path"><code class="docutils literal notranslate"><span class="pre">Zonation.path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.plots.Zonation.plotZone"><code class="docutils literal notranslate"><span class="pre">Zonation.plotZone()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.plots.plotLoc"><code class="docutils literal notranslate"><span class="pre">plotLoc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.plots.plotLog"><code class="docutils literal notranslate"><span class="pre">plotLog()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.plots.plotLogFacies"><code class="docutils literal notranslate"><span class="pre">plotLogFacies()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.plots.plotLogs"><code class="docutils literal notranslate"><span class="pre">plotLogs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.plots.plotZoneCombo"><code class="docutils literal notranslate"><span class="pre">plotZoneCombo()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.plots.tripleCombo"><code class="docutils literal notranslate"><span class="pre">tripleCombo()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-petrolib.procs">procs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.procs.model_facies"><code class="docutils literal notranslate"><span class="pre">model_facies()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.procs.process_data"><code class="docutils literal notranslate"><span class="pre">process_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.procs.set_alias"><code class="docutils literal notranslate"><span class="pre">set_alias()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.procs.trim"><code class="docutils literal notranslate"><span class="pre">trim()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-petrolib.stats">stats</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.stats.Correlation"><code class="docutils literal notranslate"><span class="pre">Correlation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.stats.Correlation.corr"><code class="docutils literal notranslate"><span class="pre">Correlation.corr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.stats.Correlation.plot_heatmap"><code class="docutils literal notranslate"><span class="pre">Correlation.plot_heatmap()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.stats.displayFreq"><code class="docutils literal notranslate"><span class="pre">displayFreq()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-petrolib.utils">utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.utils.MnemonicError"><code class="docutils literal notranslate"><span class="pre">MnemonicError</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-petrolib.workflow">workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#petrolib.workflow.Quanti"><code class="docutils literal notranslate"><span class="pre">Quanti</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.df"><code class="docutils literal notranslate"><span class="pre">Quanti.df</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.zonename"><code class="docutils literal notranslate"><span class="pre">Quanti.zonename</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.ztop"><code class="docutils literal notranslate"><span class="pre">Quanti.ztop</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.zbot"><code class="docutils literal notranslate"><span class="pre">Quanti.zbot</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.f_mids"><code class="docutils literal notranslate"><span class="pre">Quanti.f_mids</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.depth"><code class="docutils literal notranslate"><span class="pre">Quanti.depth</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.gr"><code class="docutils literal notranslate"><span class="pre">Quanti.gr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.rt"><code class="docutils literal notranslate"><span class="pre">Quanti.rt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.nphi"><code class="docutils literal notranslate"><span class="pre">Quanti.nphi</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.rhob"><code class="docutils literal notranslate"><span class="pre">Quanti.rhob</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.sonic"><code class="docutils literal notranslate"><span class="pre">Quanti.sonic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.use_mean"><code class="docutils literal notranslate"><span class="pre">Quanti.use_mean</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.flags"><code class="docutils literal notranslate"><span class="pre">Quanti.flags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.paySummary"><code class="docutils literal notranslate"><span class="pre">Quanti.paySummary()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.permeability"><code class="docutils literal notranslate"><span class="pre">Quanti.permeability()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.porosity"><code class="docutils literal notranslate"><span class="pre">Quanti.porosity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.report"><code class="docutils literal notranslate"><span class="pre">Quanti.report()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.save"><code class="docutils literal notranslate"><span class="pre">Quanti.save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.vshale"><code class="docutils literal notranslate"><span class="pre">Quanti.vshale()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#petrolib.workflow.Quanti.water_saturation"><code class="docutils literal notranslate"><span class="pre">Quanti.water_saturation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Petrolib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">Modules</a></li>
+      <li class="breadcrumb-item active">file_reader</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/petrolib.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-petrolib.file_reader">
+<span id="file-reader"></span><h1>file_reader<a class="headerlink" href="#module-petrolib.file_reader" title="Permalink to this heading"></a></h1>
+<p>A Python module for loading data into code environment.</p>
+<p>Handle files with extension such LAS, TSV, CSV or TXT</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="petrolib.file_reader.load_las">
+<span class="sig-prename descclassname"><span class="pre">petrolib.file_reader.</span></span><span class="sig-name descname"><span class="pre">load_las</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_csv</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">curves</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">LASFile</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/petrolib/file_reader.html#load_las"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.file_reader.load_las" title="Permalink to this definition"></a></dt>
+<dd><p>Function to read LAS file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>pathlib.Path</em><em> or </em><em>str</em>) – Filename or filepath specifying the LAS file</p></li>
+<li><p><strong>return_csv</strong> (<em>bool default False</em>) – If True, both dataframe and LAS object are returned.
+If False, returns only LAS object</p></li>
+<li><p><strong>curves</strong> (<em>list</em><em> or </em><em>tuple</em><em>, </em><em>optional</em>) – If specified, returns only dataframe containing the log curves specified.
+If not, all available logs are imported</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns either LAS and/or dataframe object of the well data</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1">#return both dataframe containing only [&#39;GR&#39;,&#39;RT&#39;, &#39;RHOB&#39;] curves and the lasio object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">,</span> <span class="n">las</span> <span class="o">=</span> <span class="n">load_las</span><span class="p">(</span><span class="n">well_path</span><span class="p">,</span> <span class="n">return_csv</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">curves</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="s1">&#39;RHOB&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1">#return only LAS object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">las</span> <span class="o">=</span> <span class="n">load_las</span><span class="p">(</span><span class="n">well_path</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="petrolib.file_reader.load_table">
+<span class="sig-prename descclassname"><span class="pre">petrolib.file_reader.</span></span><span class="sig-name descname"><span class="pre">load_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">curves</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'infer'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skiprows</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sheet_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/petrolib/file_reader.html#load_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.file_reader.load_table" title="Permalink to this definition"></a></dt>
+<dd><p>Function to load a table data, either csv, tsv, or excel file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<em>pathlib.Path</em><em> or </em><em>str</em>) – Filename or filepath specifying the file</p></li>
+<li><p><strong>curves</strong> (<em>list</em><em> or </em><em>tuple</em><em>, </em><em>optional</em>) – If specified, returns only dataframe containing the log curves specified
+If not, all available logs are imported</p></li>
+<li><p><strong>delimiter</strong> (<em>str</em><em>, </em><em>default '</em><em>,</em><em>'</em>) – Delimiter to use</p></li>
+<li><p><strong>header</strong> (<em>int</em><em>, </em><em>list</em><em> of </em><em>int</em><em>, </em><em>default 'infer'</em>) – Row number(s) to use as the column names, and the start of the
+data.  Default behavior is to infer the column names. See official pandas doc for more..</p></li>
+<li><p><strong>skiprows</strong> (<em>list</em><em>, </em><em>int</em><em> , </em><em>optional</em>) – Line numbers to skip (0-indexed) or number of lines to skip (int)
+at the start of the file</p></li>
+<li><p><strong>sheet_name</strong> (<em>str</em><em>, </em><em>int</em><em>, </em><em>list</em><em>, </em><em>default None</em>) – <p>Strings are used for sheet names. Integers are used in zero-indexed
+sheet positions.</p>
+<p>Available cases:</p>
+<blockquote>
+<div><ul>
+<li><p>0 : 1st sheet as a <cite>DataFrame</cite></p></li>
+<li><p>1: 2nd sheet as a <cite>DataFrame</cite></p></li>
+<li><p>”Sheet1” : Load sheet with name “Sheet1”</p></li>
+<li><p>[0, 1, “Sheet5”]: Load first, second and sheet named “Sheet5” as a dict of <cite>DataFrame</cite></p></li>
+<li><p>defaults to None: All sheets.</p></li>
+</ul>
+</div></blockquote>
+<p>See help(pd.read_excel) for more</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">well_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;C:\Users\USER\Documents\petrolib\test\petrolib\petrolib\15_9-19.csv&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1">#loads all logs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">load_table</span><span class="p">(</span><span class="n">well_path</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1">#loads specific</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">load_table</span><span class="p">(</span><span class="n">well_path</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">],</span> <span class="n">skiprows</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-petrolib.interp">
+<span id="interp"></span><h1>interp<a class="headerlink" href="#module-petrolib.interp" title="Permalink to this heading"></a></h1>
+<p>Python module for reservoir interpretation from plots</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="petrolib.interp.crossPlot">
+<span class="sig-prename descclassname"><span class="pre">petrolib.interp.</span></span><span class="sig-name descname"><span class="pre">crossPlot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">column_y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hue</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(20,</span> <span class="pre">7)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhob_fluid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'viridis'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/interp.html#crossPlot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.interp.crossPlot" title="Permalink to this definition"></a></dt>
+<dd><p>Plots the cross plot relationship of density against porosity on compatible scales
+to facilitate in identification of reservoir type and its fluid type.</p>
+<p>This code was initially written by Yohanes Nuwara but was modified to give
+the resulting plot a more classic and pretty view.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Dataframe of well</p></li>
+<li><p><strong>column_x</strong> (<em>str</em>) – Porosity column</p></li>
+<li><p><strong>column_y</strong> (<em>str</em>) – Density column</p></li>
+<li><p><strong>hue</strong> (<em>str</em>) – Column to color code the scatter plot by</p></li>
+<li><p><strong>color_code</strong> (<em>str default None</em>) – Color code typing. If ‘num’, arg <cite>hue</cite> must be a continuous column.
+If ‘cat’, argument <cite>hue</cite> must be a categorical column</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em>) – Size of plot</p></li>
+<li><p><strong>rhob_fluid</strong> (<em>float</em><em>, </em><em>default 1.0</em>) – Fluid density</p></li>
+<li><p><strong>res_name</strong> (<em>str</em>) – Reservoir name</p></li>
+<li><p><strong>cmap</strong> (<em>str</em>) – color map</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>A plot showing the neutron-density cross plot</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petrolib.interp</span> <span class="kn">import</span> <span class="n">crossPlot</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crossPlot</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">column_x</span><span class="o">=</span><span class="s1">&#39;NPHI&#39;</span><span class="p">,</span> <span class="n">column_y</span><span class="o">=</span><span class="s1">&#39;RHOB&#39;</span><span class="p">,</span> <span class="n">res_name</span><span class="o">=</span><span class="s1">&#39;RES_A&#39;</span><span class="p">,</span> <span class="n">color_code</span><span class="o">=</span><span class="s1">&#39;num&#39;</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="s1">&#39;GR&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="petrolib.interp.picketPlot">
+<span class="sig-prename descclassname"><span class="pre">petrolib.interp.</span></span><span class="sig-name descname"><span class="pre">picketPlot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'RT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">por</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'NPHI'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rwa</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.018</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(20,</span> <span class="pre">8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hue</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/interp.html#picketPlot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.interp.picketPlot" title="Permalink to this definition"></a></dt>
+<dd><p>Plot Pickett plot based on a pattern recognition approach to solving Archie’s equation. The resistivity
+and porosity logs are plotted on a logarithmic scales to evaluate formation characteristics of conventional, granular reservoirs.
+Read more here: <a class="reference external" href="https://wiki.seg.org/wiki/Pickett_plot">https://wiki.seg.org/wiki/Pickett_plot</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Dataframe</p></li>
+<li><p><strong>rt</strong> (<em>str</em>) – Resistivity column</p></li>
+<li><p><strong>rwa</strong> (<em>float default 0.03</em>) – Formation water resisitivity</p></li>
+<li><p><strong>a</strong> (<em>float default</em><em>, </em><em>1.</em>) – Turtuosity factor</p></li>
+<li><p><strong>m</strong> (<em>float default 2.</em>) – Cementation factor</p></li>
+<li><p><strong>n</strong> (<em>float default 2.</em>) – Saturation exponent</p></li>
+<li><p><strong>res_name</strong> (<em>str</em>) – Reservoir/Zone name</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em>) – Size of plot</p></li>
+<li><p><strong>hue</strong> (<em>str</em>) – Column to color code the scatter plot by.</p></li>
+<li><p><strong>color_code</strong> (<em>str default None</em>) – Color code typing. If ‘num’, arg <cite>hue</cite> must be a continuous column
+If ‘cat’, argument <cite>hue</cite> must be a categorical column
+if None, there is no color coding</p></li>
+<li><p><strong>cmap</strong> (<em>str</em>) – Color map option</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">petrolib.interp.picketPlot</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">picketPlot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">color_code</span><span class="o">=</span><span class="s1">&#39;num&#39;</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;rainbow&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petrolib.interp</span> <span class="kn">import</span> <span class="n">picketPlot</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">picketPlot</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">rt</span><span class="o">=</span><span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="n">por</span><span class="o">=</span><span class="s1">&#39;NPHI&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-petrolib.plots">
+<span id="plots"></span><h1>plots<a class="headerlink" href="#module-petrolib.plots" title="Permalink to this heading"></a></h1>
+<p>A Python module for displaying log, lithofacies and zonation plots</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="petrolib.plots.Zonation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">petrolib.plots.</span></span><span class="sig-name descname"><span class="pre">Zonation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zones</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/plots.html#Zonation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.plots.Zonation" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This is a zonation class that extract zone/reservoir information from the file.
+This information may include top, bottom and zone/reservoir name. This information
+can be accessed when an instance of <cite>Zonation object</cite> is called.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="petrolib.plots.Zonation.df">
+<span class="sig-name descname"><span class="pre">df</span></span><a class="headerlink" href="#petrolib.plots.Zonation.df" title="Permalink to this definition"></a></dt>
+<dd><p>Dataframe of well data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="petrolib.plots.Zonation.zones">
+<span class="sig-name descname"><span class="pre">zones</span></span><a class="headerlink" href="#petrolib.plots.Zonation.zones" title="Permalink to this definition"></a></dt>
+<dd><p>A optional attribute containing list of dictionaries that holds zone information
+If None, <cite>path</cite> must be supplied</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dictionaries, default None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="petrolib.plots.Zonation.path">
+<span class="sig-name descname"><span class="pre">path</span></span><a class="headerlink" href="#petrolib.plots.Zonation.path" title="Permalink to this definition"></a></dt>
+<dd><p>A csv file containing reservoir info.
+To be able to use this, the information in the file should be entered in the following format</p>
+<blockquote>
+<div><p>top, bottom, zonename
+100, 200, RES_A
+210, 220, RES_B</p>
+</div></blockquote>
+<p>If None, <cite>zone</cite> must be passed</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Path or str, default None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petrolib.plots</span> <span class="kn">import</span> <span class="n">Zonation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zones</span> <span class="o">=</span> <span class="n">Zonation</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;./well tops.csv&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zones</span> <span class="o">=</span> <span class="n">Zonation</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">zones</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;RES_A&#39;</span><span class="p">:[</span><span class="mi">3000</span><span class="p">,</span> <span class="mi">3100</span><span class="p">]},</span> <span class="p">{</span><span class="s1">&#39;RES_B&#39;</span><span class="p">:[</span><span class="mi">3300</span><span class="p">,</span> <span class="mi">3400</span><span class="p">]}])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1">#get reservoir information by calling the Zonation object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1">#ztop = top ; zbot = base; zn = zonename ; fm = formation mids to place zone name in plot</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ztop</span><span class="p">,</span> <span class="n">zbot</span><span class="p">,</span> <span class="n">zn</span><span class="p">,</span> <span class="n">fm</span> <span class="o">=</span> <span class="n">zones</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="petrolib.plots.Zonation.plotZone">
+<span class="sig-name descname"><span class="pre">plotZone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Log</span> <span class="pre">Plot'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(8,</span> <span class="pre">12)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/plots.html#Zonation.plotZone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.plots.Zonation.plotZone" title="Permalink to this definition"></a></dt>
+<dd><p>Plots log curves with zonation track.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>depth</strong> (<em>str</em>) – Depth column</p></li>
+<li><p><strong>logs</strong> (<em>list</em><em> of </em><em>str</em>) – A list of logs curves to include in plot</p></li>
+<li><p><strong>top</strong> (<em>float</em>) – Minimum depth to zoom on</p></li>
+<li><p><strong>bottom</strong> (<em>float</em>) – Maximum depth to zoom on</p></li>
+<li><p><strong>title</strong> (<em>str</em>) – Plot title</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em>) – Size of plot</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Zonation</span><span class="o">.</span><span class="n">plotZone</span><span class="p">(</span><span class="s1">&#39;DEPTH&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="s1">&#39;RHOB&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">,</span> <span class="s1">&#39;CALI&#39;</span><span class="p">],</span> <span class="mi">3300</span><span class="p">,</span> <span class="mi">3600</span><span class="p">,</span> <span class="s1">&#39;Volve&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="petrolib.plots.plotLoc">
+<span class="sig-prename descclassname"><span class="pre">petrolib.plots.</span></span><span class="sig-name descname"><span class="pre">plotLoc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">lasio.las.LASFile</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(7,</span> <span class="pre">7)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">withmap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_table</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/petrolib/plots.html#plotLoc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.plots.plotLoc" title="Permalink to this definition"></a></dt>
+<dd><p>Plots location of wells
+The longitude and latitude must be available in the LAS files</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>list</em>) – List of lasio.las.LASFile objects</p></li>
+<li><p><strong>shape_file</strong> (<em>str</em><em>, </em><em>default None</em>) – A .shp, .shx or .dbf file containing the shape file of the area where the well is located
+If not supplied, <cite>area</cite> must be passed</p></li>
+<li><p><strong>area</strong> (<em>str default</em><em>, </em><em>None</em>) – Well location. Must inlcude area from <cite>gpd.datasets.get_path(‘naturalearth_lowres’)</cite></p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em>) – Size of plot</p></li>
+<li><p><strong>label</strong> (<em>list</em><em> of </em><em>str</em>) – Well name(s). Must be a list of equal length with <cite>data</cite></p></li>
+<li><p><strong>withmap</strong> (<em>bool default False</em>) – Plots location of wells on a map if True
+Plots the location on a scatter plot if False</p></li>
+<li><p><strong>return_table</strong> (<em>bool default False</em>) – Return well information such as the long, lat and name</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotLoc</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="n">las</span><span class="p">],</span> <span class="n">area</span><span class="o">=</span><span class="s1">&#39;Norway&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;15_9-F-1A&#39;</span><span class="p">],</span> <span class="n">withmap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="petrolib.plots.plotLog">
+<span class="sig-prename descclassname"><span class="pre">petrolib.plots.</span></span><span class="sig-name descname"><span class="pre">plotLog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Log</span> <span class="pre">Plot'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(8,</span> <span class="pre">12)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/plots.html#plotLog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.plots.plotLog" title="Permalink to this definition"></a></dt>
+<dd><p>Plots log curves singly. To plot overlay plots use <cite>plots.plotLogs</cite> or <cite>plots.plotLogFacies</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Dataframe</p></li>
+<li><p><strong>depth</strong> (<em>str</em>) – Depth column</p></li>
+<li><p><strong>logs</strong> (<em>list</em><em> of </em><em>str</em>) – A list of logs curves to include in plot</p></li>
+<li><p><strong>top</strong> (<em>float</em>) – Minimum depth to zoom on</p></li>
+<li><p><strong>bottom</strong> (<em>float</em>) – Maximum depth to zoom on</p></li>
+<li><p><strong>title</strong> (<em>str</em>) – Plot title</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em>) – Size of plot</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petrolib.plots</span> <span class="kn">import</span> <span class="n">plotLog</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plotLog</span><span class="p">(</span><span class="s1">&#39;DEPTH&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="s1">&#39;RHOB&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">,</span> <span class="s1">&#39;CALI&#39;</span><span class="p">],</span> <span class="mi">3300</span><span class="p">,</span> <span class="mi">3600</span><span class="p">,</span> <span class="s1">&#39;Volve&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plotLog</span><span class="p">(</span><span class="n">df</span><span class="p">,</span><span class="s1">&#39;DEPTH&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;NPHI&#39;</span><span class="p">],</span> <span class="mi">2751</span><span class="p">,</span> <span class="mf">2834.58</span><span class="p">,</span> <span class="s1">&#39;Fre-1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="petrolib.plots.plotLogFacies">
+<span class="sig-prename descclassname"><span class="pre">petrolib.plots.</span></span><span class="sig-name descname"><span class="pre">plotLogFacies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facies</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Log</span> <span class="pre">Plot'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(8,</span> <span class="pre">12)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/plots.html#plotLogFacies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.plots.plotLogFacies" title="Permalink to this definition"></a></dt>
+<dd><p>Plots overlayed/super-imposed log curves along with the facies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Dataframe</p></li>
+<li><p><strong>depth</strong> (<em>str</em>) – Depth column</p></li>
+<li><p><strong>logs</strong> (<em>list</em><em> of </em><em>lists/str</em>) – A list of logs curves to include in plot</p></li>
+<li><p><strong>top</strong> (<em>float</em>) – Minimum depth to zoom on</p></li>
+<li><p><strong>bottom</strong> (<em>float</em>) – Maximum depth to zoom on</p></li>
+<li><p><strong>facies</strong> (<em>str</em>) – <dl class="simple">
+<dt>Facies columns. Supported facies include :</dt><dd><p>[‘Sandstone’, ‘Sandstone/Shale’, ‘Shale’, ‘Marl’, ‘Dolomite’, ‘Limestone’,
+‘Chalk’, ‘Halite’, ‘Anhydrite’, ‘Tuff’, ‘Coal’, ‘Basement’]</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>title</strong> (<em>str</em>) – Plot title</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em>) – Size of plot</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petrolib.plots</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plotLogFacies</span><span class="p">(</span><span class="n">well11</span><span class="p">,</span> <span class="s1">&#39;DEPTH&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;RHOB&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">]],</span> <span class="n">facies</span><span class="o">=</span><span class="s1">&#39;litho&#39;</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="n">well11</span><span class="o">.</span><span class="n">DEPTH</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+<span class="go">                        bottom=well11.DEPTH.max(), figsize=(9, 12), title=&#39;15-9-F1A&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="petrolib.plots.plotLogs">
+<span class="sig-prename descclassname"><span class="pre">petrolib.plots.</span></span><span class="sig-name descname"><span class="pre">plotLogs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Log</span> <span class="pre">Plot'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(8,</span> <span class="pre">12)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/plots.html#plotLogs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.plots.plotLogs" title="Permalink to this definition"></a></dt>
+<dd><p>Plots overlayed/super-imposed log curves.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Dataframe</p></li>
+<li><p><strong>depth</strong> (<em>str</em>) – Depth column</p></li>
+<li><p><strong>logs</strong> (<em>list</em><em> of </em><em>lists/str</em>) – A list of logs curves to include in plot</p></li>
+<li><p><strong>top</strong> (<em>float</em>) – Minimum depth to zoom on</p></li>
+<li><p><strong>bottom</strong> (<em>float</em>) – Maximum depth to zoom on</p></li>
+<li><p><strong>title</strong> (<em>str</em>) – Plot title</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em>) – Size of plot</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plotLogs</span><span class="p">(</span><span class="n">well11</span><span class="p">,</span> <span class="s1">&#39;DEPTH&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;RHOB&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">]],</span> <span class="n">top</span><span class="o">=</span><span class="n">well11</span><span class="o">.</span><span class="n">DEPTH</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+<span class="gp">&gt;&gt;&gt; </span>                       <span class="n">bottom</span><span class="o">=</span><span class="n">well11</span><span class="o">.</span><span class="n">DEPTH</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;15-9-F1A&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="petrolib.plots.plotZoneCombo">
+<span class="sig-prename descclassname"><span class="pre">petrolib.plots.</span></span><span class="sig-name descname"><span class="pre">plotZoneCombo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nphi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ztop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zbot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ztops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zbots</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zonename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res_thres</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">palette_op</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Log</span> <span class="pre">plot'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(10,</span> <span class="pre">20)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/petrolib/plots.html#plotZoneCombo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.plots.plotZoneCombo" title="Permalink to this definition"></a></dt>
+<dd><p>Function for plotting three combo logs alongside the zonation/reservoir track</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Dataframe of data</p></li>
+<li><p><strong>depth</strong> (<em>str</em>) – Depth column</p></li>
+<li><p><strong>gr</strong> (<em>str</em>) – Gamma ray column</p></li>
+<li><p><strong>res</strong> (<em>str</em>) – Resistivity column</p></li>
+<li><p><strong>nphi</strong> (<em>str</em>) – Neutron porosity column</p></li>
+<li><p><strong>rhob</strong> (<em>str</em>) – Bulk density column</p></li>
+<li><p><strong>ztop</strong> (<em>float</em>) – Top or minimum depth value</p></li>
+<li><p><strong>zbot</strong> (<em>float</em>) – Bottom or maximum depth value</p></li>
+<li><p><strong>ztops</strong> (<em>list</em><em> of </em><em>float</em>) – Tops (depth) of each reservoir/zones</p></li>
+<li><p><strong>zbots</strong> (<em>list</em><em> of </em><em>float</em>) – Bottom (depth) of each reservoir/zones</p></li>
+<li><p><strong>zonename</strong> (<em>list</em><em> of </em><em>str</em>) – Name of each zones</p></li>
+<li><p><strong>limit</strong> (<em>str default None</em>) – Tells which side to fill the gamma ray track, [‘left’, ‘right’].
+lf None, it’s filled in both sides delineating shale-sand region</p></li>
+<li><p><strong>res_thres</strong> (<em>float</em>) – Resistivity threshold to use in the identification on hydrocarbon bearing zone</p></li>
+<li><p><strong>palette_op</strong> (<em>str optional</em>) – Palette option to fill gamma ray log. If None, <a href="#id1"><span class="problematic" id="id2">`</span></a>fill must be provided</p></li>
+<li><p><strong>fill</strong> (<em>str default None</em>) – <p>To show either of the porous and/or non porous zones in the neutron-density crossover.
+Can either be [‘left’, ‘right’, ‘both’]</p>
+<ul>
+<li><p>default None - show neither of the porous nor non-porous zones</p></li>
+<li><p>’left’ - shows only porous zones</p></li>
+<li><p>’right’ - shows only non-porous zones</p></li>
+<li><p>’both’ - shows both porous and non-porous zones</p></li>
+</ul>
+</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em>) – Size of plot</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petrolib.plots</span> <span class="kn">import</span> <span class="n">plotZoneCombo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plotZoneCombo</span><span class="p">(</span><span class="n">well11</span><span class="p">,</span> <span class="s1">&#39;DEPTH&#39;</span><span class="p">,</span> <span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">,</span> <span class="s1">&#39;RHOB&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">ztop</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">zbot</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>         <span class="n">ztop</span><span class="p">,</span> <span class="n">zbot</span><span class="p">,</span> <span class="n">zn</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mi">30</span><span class="p">),</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;ATAGA-11&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="petrolib.plots.tripleCombo">
+<span class="sig-prename descclassname"><span class="pre">petrolib.plots.</span></span><span class="sig-name descname"><span class="pre">tripleCombo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nphi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ztop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zbot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res_thres</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">palette_op</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(9,</span> <span class="pre">10)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Three</span> <span class="pre">Combo</span> <span class="pre">Log</span> <span class="pre">Plot'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/petrolib/plots.html#tripleCombo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.plots.tripleCombo" title="Permalink to this definition"></a></dt>
+<dd><p>Plots a three combo log of well data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>pd.DataFrame</em>) – Dataframe of data</p></li>
+<li><p><strong>depth</strong> (<em>str</em>) – Depth column</p></li>
+<li><p><strong>gr</strong> (<em>str</em>) – Gamma ray column</p></li>
+<li><p><strong>res</strong> (<em>str</em>) – Resistivity column</p></li>
+<li><p><strong>nphi</strong> (<em>str</em>) – Neutron porosity column</p></li>
+<li><p><strong>rhob</strong> (<em>str</em>) – Bulk density column</p></li>
+<li><p><strong>ztop</strong> (<em>list</em>) – Top or minimum depth to zoom on.</p></li>
+<li><p><strong>zbot</strong> (<em>list</em>) – Bottom or maximum depth to zoom on.</p></li>
+<li><p><strong>res_thres</strong> (<em>float</em>) – Resistivity threshold to use in the identification on hydrocarbon bearing zone</p></li>
+<li><p><strong>fill</strong> (<em>str default None</em>) – <p>To show either of the porous and/or non porous zones in the neutron-density crossover.
+Can either be [‘left’, ‘right’, ‘both’]</p>
+<ul>
+<li><p>default None - show neither of the porous nor non-porous zones</p></li>
+<li><p>’left’ - shows only porous zones</p></li>
+<li><p>’right’ - shows only non-porous zones</p></li>
+<li><p>’both’ - shows both porous and non-porous zones</p></li>
+</ul>
+</p></li>
+<li><p><strong>palette_op</strong> (<em>str optional</em>) – Palette option to fill gamma ray log</p></li>
+<li><p><strong>limit</strong> (<em>str default None</em>) – Tells which side to fill the gamma ray track, [‘left’, ‘right’]
+lf None, it’s filled in both sides delineating shale-sand region</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em>) – Size of plot</p></li>
+<li><p><strong>title</strong> (<em>str</em>) – Title of plot</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">matplotlib</span> <span class="n">inline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petrolib.plots</span> <span class="kn">import</span> <span class="n">tripleCombo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># %matplotlib inline</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tripleCombo</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s1">&#39;DEPTH&#39;</span><span class="p">,</span> <span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">,</span> <span class="s1">&#39;RHOB&#39;</span><span class="p">,</span> <span class="n">ztop</span><span class="o">=</span><span class="mi">3300</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">zbot</span><span class="o">=</span><span class="mi">3450</span><span class="p">,</span> <span class="n">res_thres</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="n">palette_op</span><span class="o">=</span><span class="s1">&#39;rainbow&#39;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-petrolib.procs">
+<span id="procs"></span><h1>procs<a class="headerlink" href="#module-petrolib.procs" title="Permalink to this heading"></a></h1>
+<p>Python module for data processing and lithofacies modelling</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="petrolib.procs.model_facies">
+<span class="sig-prename descclassname"><span class="pre">petrolib.procs.</span></span><span class="sig-name descname"><span class="pre">model_facies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'SS'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/petrolib/procs.html#model_facies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.procs.model_facies" title="Permalink to this definition"></a></dt>
+<dd><p>Models lithofacies from Gamma ray log specific to a particular environment</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – dataframe</p></li>
+<li><p><strong>gr</strong> (<em>str</em>) – Gamma ray log column</p></li>
+<li><p><strong>env</strong> (<em>str</em>) – Environment type. Either siliciclastic or carbonate
+* ‘SS’ for Siliclastic (Shale and Sandstone) environment
+* ‘CO’ for carbonate (Anhydrite, Limestone, Dolomite, Sandstone, Shale) environment</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petrolib.interp</span> <span class="kn">import</span> <span class="n">model_facies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model_facies</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">gr</span><span class="o">=</span><span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="s1">&#39;SS&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="petrolib.procs.process_data">
+<span class="sig-prename descclassname"><span class="pre">petrolib.procs.</span></span><span class="sig-name descname"><span class="pre">process_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nphi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'both'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/petrolib/procs.html#process_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.procs.process_data" title="Permalink to this definition"></a></dt>
+<dd><p>Function to preprocess data before beginning petrophysics workflow.
+This processing workflow uses conventional values for the log curves.
+To use user-defined preprocessing method , refer to the <cite>petrolib.data.procs.trim()</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – dataframe object</p></li>
+<li><p><strong>gr</strong> (<em>str</em>) – Gamma ray column</p></li>
+<li><p><strong>rt</strong> (<em>str</em>) – Resistivity column</p></li>
+<li><p><strong>nphi</strong> (<em>str</em>) – Neutron porosity column</p></li>
+<li><p><strong>rhob</strong> (<em>str</em>) – Bulk density column</p></li>
+<li><p><strong>sonic</strong> (<em>str</em><em>, </em><em>default None</em>) – Sonic column (optional)</p></li>
+<li><p><strong>trim</strong> (<em>str default 'both'</em>) – Conditions for trim arbitrary values
+* ‘max’ : to trim values higher than conventional maximum values
+* ‘min’ : to trim values lower than conventional lower values
+* default ‘both’ : to trim both lower and higher values to conventional high and lower values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new copy of dataframe containing processed data</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">process_data</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">,</span> <span class="s1">&#39;RHOB&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span>
+<span class="go">            |DEPTH  |  GR   |   RT  |  NPHI  |  RHOB|</span>
+<span class="go">            +-------+-------+-------+--------+------+</span>
+<span class="go">      count | 35361 | 34671 | 34211 | 10524  |10551 |</span>
+<span class="go">     -------+-------+-------+-------+--------+------+</span>
+<span class="go">       mean | 1913.9| 56.97 |  1.95 |  0.17  | 2.48 |</span>
+<span class="go">     -------+-------+-------+-------+--------+------+</span>
+<span class="go">        min |  145.9| 0.15  |  0.2  |  0.03  | 1.98 |</span>
+<span class="go">      ------+-------+-------+-------+--------+------+</span>
+<span class="go">        max | 3681.9|  200  | 2000  |  0.45  |  2.93|</span>
+<span class="go">       ----------------------------------------------</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="petrolib.procs.set_alias">
+<span class="sig-prename descclassname"><span class="pre">petrolib.procs.</span></span><span class="sig-name descname"><span class="pre">set_alias</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DEPTH</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GR</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RT</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NPHI</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RHOB</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DT</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/petrolib/procs.html#set_alias"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.procs.set_alias" title="Permalink to this definition"></a></dt>
+<dd><p>Function to rename the log curves in order to maintain petrophysics conventions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – dataframe object</p></li>
+<li><p><strong>DEPTH</strong> (<em>str</em>) – Depth column</p></li>
+<li><p><strong>GR</strong> (<em>str</em>) – Gamma ray column</p></li>
+<li><p><strong>RT</strong> (<em>str</em>) – Resistivity column</p></li>
+<li><p><strong>NPHI</strong> (<em>str</em>) – Neutron porosity column</p></li>
+<li><p><strong>RHOB</strong> (<em>str</em>) – Bulk density column</p></li>
+<li><p><strong>DT</strong> (<em>str</em><em>, </em><em>default None</em>) – Sonic column (optional)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Returns data of renamed log curves</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">set_alias</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s1">&#39;DEPT&#39;</span><span class="p">,</span> <span class="s1">&#39;GR&#39;</span><span class="p">,</span><span class="s1">&#39;RES&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">,</span> <span class="s1">&#39;RHOB&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="s1">&#39;DEPTH&#39;</span><span class="p">,</span> <span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">,</span> <span class="s1">&#39;RHOB&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="petrolib.procs.trim">
+<span class="sig-prename descclassname"><span class="pre">petrolib.procs.</span></span><span class="sig-name descname"><span class="pre">trim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/procs.html#trim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.procs.trim" title="Permalink to this definition"></a></dt>
+<dd><p>Function to preprocess data by trimming arbitrary values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Dataframe</p></li>
+<li><p><strong>col</strong> (<em>str</em>) – Log curve to trim its values</p></li>
+<li><p><strong>lower</strong> (<em>int</em><em> or </em><em>float</em>) – Lower limit or minimum value</p></li>
+<li><p><strong>upper</strong> (<em>int</em><em> or </em><em>float</em>) – Upper limit or maximum value</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dataframe with user defined log limits</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">trim</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-petrolib.stats">
+<span id="stats"></span><h1>stats<a class="headerlink" href="#module-petrolib.stats" title="Permalink to this heading"></a></h1>
+<p>Python module for handling data statistics</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="petrolib.stats.Correlation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">petrolib.stats.</span></span><span class="sig-name descname"><span class="pre">Correlation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/stats.html#Correlation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.stats.Correlation" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A correlation class for pearson and chatterjee method of statistical significance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>pd.DataFrame</em>) – Takes in only the dataframe</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="petrolib.stats.Correlation.corr">
+<span class="sig-name descname"><span class="pre">corr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'chatterjee'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/stats.html#Correlation.corr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.stats.Correlation.corr" title="Permalink to this definition"></a></dt>
+<dd><p>Function to calculate the linear (Pearson’s) and non-linear (Chatterjee’s) relationships between log curves.
+Relationship between well logs are usually non-linear.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>method</strong> (<em>str</em><em>, </em><em>default 'chatterjee'</em>) – <p>Method of correlation. {‘chatterjee’, ‘pearsonr’, ‘linear’, ‘nonlinear’}</p>
+<ul class="simple">
+<li><p>’linear’ is the same as ‘pearsonr’</p></li>
+<li><p>’nonlinear’ is the same as ‘chatterjee’</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Correlation matrix of all possible log curves combination</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">corr</span> <span class="o">=</span> <span class="n">Correlation</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v</span> <span class="o">=</span> <span class="n">corr</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;chatterjee)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="petrolib.stats.Correlation.plot_heatmap">
+<span class="sig-name descname"><span class="pre">plot_heatmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Correlation</span> <span class="pre">Heatmap'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">slice</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(12,</span> <span class="pre">7)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">annot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/stats.html#Correlation.plot_heatmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.stats.Correlation.plot_heatmap" title="Permalink to this definition"></a></dt>
+<dd><p>Plots the heat map of Correlation Matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>title</strong> (<em>str</em>) – Title of plot</p></li>
+<li><p><strong>figsize</strong> (<em>slice</em>) – Size of plot</p></li>
+<li><p><strong>annot</strong> (<em>bool</em><em>, </em><em>default True</em>) – To annotate the coefficient in the plot</p></li>
+<li><p><strong>cmap</strong> (<em>matplotlib colormap name</em><em> or </em><em>object</em><em>, or </em><em>list</em><em> of </em><em>colors</em><em>, </em><em>optional</em>) – The mapping from data values to color space</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">corr</span> <span class="o">=</span> <span class="n">Correlation</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v</span> <span class="o">=</span> <span class="n">corr</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;chatterjee)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">corr</span><span class="o">.</span><span class="n">plot_heatmap</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;Reds&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="petrolib.stats.displayFreq">
+<span class="sig-prename descclassname"><span class="pre">petrolib.stats.</span></span><span class="sig-name descname"><span class="pre">displayFreq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">cols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">slice</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(8,</span> <span class="pre">8)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/stats.html#displayFreq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.stats.displayFreq" title="Permalink to this definition"></a></dt>
+<dd><p>Function to plot the frequency distribution of well log curves</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Dataframe of data</p></li>
+<li><p><strong>cols</strong> (<em>tuple</em><em>[</em><em>str</em><em>]</em>) – log curves to show its distribution</p></li>
+<li><p><strong>bins</strong> (<em>int</em>) – Number of bins to group the data</p></li>
+<li><p><strong>figsize</strong> (<em>slice</em>) – Size of plot</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Shows a plot of the frequency distribution of well log curves</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petrolib.stats</span> <span class="kn">import</span> <span class="n">displayFreq</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">displayFreq</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s1">&#39;GR&#39;</span><span class="p">,</span><span class="s1">&#39;CALI&#39;</span><span class="p">,</span> <span class="s1">&#39;COAL&#39;</span><span class="p">,</span> <span class="s1">&#39;DT&#39;</span><span class="p">,</span> <span class="s1">&#39;DT_LOG&#39;</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-petrolib.utils">
+<span id="utils"></span><h1>utils<a class="headerlink" href="#module-petrolib.utils" title="Permalink to this heading"></a></h1>
+<dl class="py exception">
+<dt class="sig sig-object py" id="petrolib.utils.MnemonicError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">petrolib.utils.</span></span><span class="sig-name descname"><span class="pre">MnemonicError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/utils.html#MnemonicError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.utils.MnemonicError" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception raised if the log curve/menemonic passed is not found</p>
+</dd></dl>
+
+</section>
+<section id="module-petrolib.workflow">
+<span id="workflow"></span><h1>workflow<a class="headerlink" href="#module-petrolib.workflow" title="Permalink to this heading"></a></h1>
+<p>Python module for petrophysics</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">petrolib.workflow.</span></span><span class="sig-name descname"><span class="pre">Quanti</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zonename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ztop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zbot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_mids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nphi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sonic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_mean</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_median</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/workflow.html#Quanti"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.workflow.Quanti" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class to petrophysics workflow to evaluate any number of reservoirs of interest.
+Computes IGR/VSH, Total and Effective Porosities, Water and Hydrocarbon Saturation, Permeability</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.df">
+<span class="sig-name descname"><span class="pre">df</span></span><a class="headerlink" href="#petrolib.workflow.Quanti.df" title="Permalink to this definition"></a></dt>
+<dd><p>Dataframe of data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.zonename">
+<span class="sig-name descname"><span class="pre">zonename</span></span><a class="headerlink" href="#petrolib.workflow.Quanti.zonename" title="Permalink to this definition"></a></dt>
+<dd><p>List of zonenames. Will be accessed from the zonation file passed into <cite>Zonation</cite> class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.ztop">
+<span class="sig-name descname"><span class="pre">ztop</span></span><a class="headerlink" href="#petrolib.workflow.Quanti.ztop" title="Permalink to this definition"></a></dt>
+<dd><p>Tops of the reservoirs. Will be accessed from the zonation file passed into <cite>Zonation</cite> class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.zbot">
+<span class="sig-name descname"><span class="pre">zbot</span></span><a class="headerlink" href="#petrolib.workflow.Quanti.zbot" title="Permalink to this definition"></a></dt>
+<dd><p>Bottoms of the reservoirs. Will be accessed from the zonation file passed into <cite>Zonation</cite> class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.f_mids">
+<span class="sig-name descname"><span class="pre">f_mids</span></span><a class="headerlink" href="#petrolib.workflow.Quanti.f_mids" title="Permalink to this definition"></a></dt>
+<dd><p>Formation mids to help place the <cite>zonename</cite> in the plots. Will be accessed from the zonation file passed into <cite>Zonation</cite> class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.depth">
+<span class="sig-name descname"><span class="pre">depth</span></span><a class="headerlink" href="#petrolib.workflow.Quanti.depth" title="Permalink to this definition"></a></dt>
+<dd><p>Depth column</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.gr">
+<span class="sig-name descname"><span class="pre">gr</span></span><a class="headerlink" href="#petrolib.workflow.Quanti.gr" title="Permalink to this definition"></a></dt>
+<dd><p>Gamma ray column</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.rt">
+<span class="sig-name descname"><span class="pre">rt</span></span><a class="headerlink" href="#petrolib.workflow.Quanti.rt" title="Permalink to this definition"></a></dt>
+<dd><p>Resistivity column</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.nphi">
+<span class="sig-name descname"><span class="pre">nphi</span></span><a class="headerlink" href="#petrolib.workflow.Quanti.nphi" title="Permalink to this definition"></a></dt>
+<dd><p>Neutron porosity column</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.rhob">
+<span class="sig-name descname"><span class="pre">rhob</span></span><a class="headerlink" href="#petrolib.workflow.Quanti.rhob" title="Permalink to this definition"></a></dt>
+<dd><p>Bulk density column</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.sonic">
+<span class="sig-name descname"><span class="pre">sonic</span></span><a class="headerlink" href="#petrolib.workflow.Quanti.sonic" title="Permalink to this definition"></a></dt>
+<dd><p>Sonic column (optional)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str default None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.use_mean">
+<span class="sig-name descname"><span class="pre">use_mean</span></span><a class="headerlink" href="#petrolib.workflow.Quanti.use_mean" title="Permalink to this definition"></a></dt>
+<dd><p>For cutoff. Whether to use mean of GR in IGR/VSH computation or not. If None, uses either median or average value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool default None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">use_median;</span> <span class="pre">bool</span> <span class="pre">default</span> <span class="pre">None</span></span></dt>
+<dd><p>For cutoff. Whether to use median of GR in IGR/VSH computation or not. If None, uses either mean or average value</p>
+</dd></dl>
+
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1">#loading libraries/packages</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petrolib.workflow</span> <span class="kn">import</span> <span class="n">Quanti</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petrolib.plot</span> <span class="kn">import</span> <span class="n">Zonation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petrolib.file_reader</span> <span class="kn">import</span> <span class="n">load_las</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1">#loading well file and zonation/tops file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">well_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;./15_9-F-1A.LAS&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">contact_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;./well tops.csv&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">las</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span> <span class="n">load_las</span><span class="p">(</span><span class="n">well_path</span><span class="p">,</span> <span class="n">curves</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">,</span> <span class="s1">&#39;RHOB&#39;</span><span class="p">],</span> <span class="n">return_las</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1">#creating zonation class to extra info</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zones</span> <span class="o">=</span> <span class="n">Zonation</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">contact_path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ztop</span><span class="p">,</span> <span class="n">zbot</span><span class="p">,</span> <span class="n">zn</span><span class="p">,</span> <span class="n">fm</span> <span class="o">=</span> <span class="n">zones</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1">#creating quanti class</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span> <span class="o">=</span> <span class="n">Quanti</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">zn</span><span class="p">,</span> <span class="n">ztop</span><span class="p">,</span> <span class="n">zbot</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="s1">&#39;DEPTH&#39;</span><span class="p">,</span> <span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">,</span> <span class="s1">&#39;RHOB&#39;</span><span class="p">,</span> <span class="n">use_mean</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.flags">
+<span class="sig-name descname"><span class="pre">flags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vsh_cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">por_cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sw_cutoff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'m'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">palette_op</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/workflow.html#Quanti.flags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.workflow.Quanti.flags" title="Permalink to this definition"></a></dt>
+<dd><p>Create the {ROCK, RES, PAY} flags</p>
+<p>To use, must have called <cite>vshale</cite>, <cite>porosity</cite>, <cite>water_saturation</cite> and <cite>permeability</cite> methods</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vsh_method</strong> (<em>float</em>) – Volume of Shale cutoff. Applied only to [‘ROCK’] flag</p></li>
+<li><p><strong>por_cutoff</strong> (<em>float</em>) – Porosity cutoff. Applied only to the [‘ROCK’, ‘RES’] flags</p></li>
+<li><p><strong>sw_cutoff</strong> (<em>float</em>) – Water Saturation cutoff. Applied only to the [‘ROCK’, ‘RES’, ‘PAY] flags</p></li>
+<li><p><strong>ref_unit</strong> (<em>str default 'm'</em>) – Reference unit for measured depth. Defaults to metres</p></li>
+<li><p><strong>show_plot</strong> (<em>bool default False</em>) – Display plot if True.. Plots GR, RT, VSH, SW, Perm, NPHI/RHOB, PHIE/PHIT, [‘ROCK’, ‘RES’, ‘PAY] flags and Zonation track</p></li>
+<li><p><strong>palette_op</strong> (<em>str default None</em>) – palette option for VSH coloring. Check <a class="reference external" href="https://matplotlib.org/stable/tutorials/colors/colormaps.html">https://matplotlib.org/stable/tutorials/colors/colormaps.html</a> for availabel palette options</p></li>
+<li><p><strong>figsize</strong> (<em>tuple default None</em>) – Size of plot</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Either/Both Dataframe containing the flags and the plot if show_plot=True</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create Quanti class</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span> <span class="o">=</span> <span class="n">Quanti</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">zn</span><span class="p">,</span> <span class="n">ztop</span><span class="p">,</span> <span class="n">zbot</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="s1">&#39;DEPTH&#39;</span><span class="p">,</span> <span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">,</span> <span class="s1">&#39;RHOB&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Display plot only</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">flags</span><span class="p">(</span><span class="n">por_cutoff</span><span class="o">=</span><span class="mf">.12</span><span class="p">,</span> <span class="n">vsh_cutoff</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span> <span class="n">sw_cutoff</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">show_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">palette_op</span><span class="o">=</span><span class="s1">&#39;cubehelix&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Display data only</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">flags</span><span class="p">(</span><span class="n">por_cutoff</span><span class="o">=</span><span class="mf">.12</span><span class="p">,</span> <span class="n">vsh_cutoff</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span> <span class="n">sw_cutoff</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.paySummary">
+<span class="sig-name descname"><span class="pre">paySummary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/workflow.html#Quanti.paySummary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.workflow.Quanti.paySummary" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Computes the</dt><dd><ul class="simple">
+<li><p>net, grossand not net thicknesses</p></li>
+<li><p>net-to-gross</p></li>
+<li><p>average volume of shale</p></li>
+<li><p>average porosity value</p></li>
+<li><p>bulk volume of water</p></li>
+<li><p>water saturation</p></li>
+</ul>
+</dd>
+</dl>
+<p>for each of the three flags {ROCK, RES, PAY}</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – Name of the well</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Displays the Pay Summary Report table</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">paySummary</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;15-9_F1A&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.permeability">
+<span class="sig-name descname"><span class="pre">permeability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/workflow.html#Quanti.permeability"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.workflow.Quanti.permeability" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the permeability.
+To use, must have called <cite>vshale</cite> and <cite>porosity</cite> and <cite>water_saturation</cite> methods</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>show_plot</strong> (<em>bool default False</em>) – Display plot if True.. Plots PHIE, Permeability and Zone track</p></li>
+<li><p><strong>figsize</strong> (<em>tuple default None</em>) – Size of plot</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Either/Both Dataframe containing the Perm and the plot if show_plot=True</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># create Quanti class</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span> <span class="o">=</span> <span class="n">Quanti</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">zn</span><span class="p">,</span> <span class="n">ztop</span><span class="p">,</span> <span class="n">zbot</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="s1">&#39;DEPTH&#39;</span><span class="p">,</span> <span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">,</span> <span class="s1">&#39;RHOB&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># display plot only</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">vshale</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;clavier&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">porosity</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;density&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">water_saturation</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;archie&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">permeability</span><span class="p">(</span><span class="n">show_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># display data only</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">vshale</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;clavier&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">porosity</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;density&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">water_saturation</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;archie&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">permeability</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.porosity">
+<span class="sig-name descname"><span class="pre">porosity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'density'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhob_shale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhob_fluid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rhob_matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.65</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fzs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/workflow.html#Quanti.porosity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.workflow.Quanti.porosity" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the effective and total porosities using the ‘density’ and Wyllie’s ‘sonic’ method.
+To use, must have called the <cite>vshale</cite> method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>str default 'density'</em>) – Porosity method. {‘density’, ‘sonic’}</p></li>
+<li><p><strong>rhob_shale</strong> (<em>float default 2.4</em>) – Shale matrix</p></li>
+<li><p><strong>rhob_fluid</strong> (<em>float default 1.0</em>) – Fluid density</p></li>
+<li><p><strong>rhob_matrix</strong> (<em>float default 2.65</em>) – Matrix density</p></li>
+<li><p><strong>fzs</strong> (<em>float default None</em>) – Flushed zone saturation for PHIE. If None, it is calculated from rhob_fluid, rhob_shale and rhob_matrix</p></li>
+<li><p><strong>show_plot</strong> (<em>bool default False</em>) – Display plot if True.. Plots RHOB, VSH, PHIE/PHIT and Zone track</p></li>
+<li><p><strong>figsize</strong> (<em>tuple default None</em>) – Size of plot</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Either/Both Dataframe containing the PHIE/PHIT and the plot if show_plot=True</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># create Quanti class</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span> <span class="o">=</span> <span class="n">Quanti</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">zn</span><span class="p">,</span> <span class="n">ztop</span><span class="p">,</span> <span class="n">zbot</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="s1">&#39;DEPTH&#39;</span><span class="p">,</span> <span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">,</span> <span class="s1">&#39;RHOB&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># display plot only</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">porosity</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;density&#39;</span><span class="p">,</span> <span class="n">show_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># display data only</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">porosity</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;density&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.report">
+<span class="sig-name descname"><span class="pre">report</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/workflow.html#Quanti.report"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.workflow.Quanti.report" title="Permalink to this definition"></a></dt>
+<dd><p>Displays the methods used in each parameter estimations and cutoff used for flagging</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/workflow.html#Quanti.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.workflow.Quanti.save" title="Permalink to this definition"></a></dt>
+<dd><p>A method to save the pay summary results into a excel file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file_name</strong> (<em>str</em>) – name of to save the pay summary report as</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.vshale">
+<span class="sig-name descname"><span class="pre">vshale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">palette_op</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/workflow.html#Quanti.vshale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.workflow.Quanti.vshale" title="Permalink to this definition"></a></dt>
+<dd><p>Computes the Volume of Shale</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>str default 'linear'</em>) – Volume of Shale method. {‘linear’, ‘clavier’, ‘larionov_ter’, ‘larionov_older’, ‘stieber_1’, ‘stieber_2, ‘stieber_m_pliocene’}
+* Linear = Gamma Ray Index (IGR)
+* Larionov Tertiary
+* Larionov Older Rocks
+* Stieber (Miocene/Pliocene)</p></li>
+<li><p><strong>show_plot</strong> (<em>bool default False</em>) – Display plot if True.. Plots GR, VSH and Zone track</p></li>
+<li><p><strong>palette_op</strong> (<em>str default None</em>) – Palette option for to color code vshale plot. Check <a class="reference external" href="https://matplotlib.org/stable/tutorials/colors/colormaps.html">https://matplotlib.org/stable/tutorials/colors/colormaps.html</a></p></li>
+<li><p><strong>figsize</strong> (<em>tuple default None</em>) – Size of plot</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Either/Both Dataframe containing the VSH and the plot if show_plot=True</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># create Quanti class</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span> <span class="o">=</span> <span class="n">Quanti</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">zn</span><span class="p">,</span> <span class="n">ztop</span><span class="p">,</span> <span class="n">zbot</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="s1">&#39;DEPTH&#39;</span><span class="p">,</span> <span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">,</span> <span class="s1">&#39;RHOB&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># display plot only</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">vshale</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;clavier&#39;</span><span class="p">,</span> <span class="n">show_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">palette_op</span><span class="o">=</span><span class="s1">&#39;cubehelix&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">12</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># display data only</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">vshale</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;clavier&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="petrolib.workflow.Quanti.water_saturation">
+<span class="sig-name descname"><span class="pre">water_saturation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'archie'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/petrolib/workflow.html#Quanti.water_saturation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#petrolib.workflow.Quanti.water_saturation" title="Permalink to this definition"></a></dt>
+<dd><p>Computes water and hydrocarbon saturation
+To use, must have called both <cite>vshale</cite> and <cite>porosity</cite> methods</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>str default 'archie'</em>) – Water Saturation method. {‘archie’, ‘simmandoux’}</p></li>
+<li><p><strong>rw</strong> (<em>float default 0.03</em>) – Formation water resisitivity</p></li>
+<li><p><strong>a</strong> (<em>float default</em><em>, </em><em>1.</em>) – Turtuosity factor</p></li>
+<li><p><strong>m</strong> (<em>float default 2.</em>) – Cementation factor</p></li>
+<li><p><strong>n</strong> (<em>float default 2.</em>) – Saturation exponent</p></li>
+<li><p><strong>show_plot</strong> (<em>bool default False</em>) – Display plot if True.. Plots RT, SW, PHIE/PHIT and Zone track</p></li>
+<li><p><strong>figsize</strong> (<em>tuple default None</em>) – Size of plot</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Either/Both Dataframe containing the SW, SH and the plot if show_plot=True</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># create Quanti class</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span> <span class="o">=</span> <span class="n">Quanti</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">zn</span><span class="p">,</span> <span class="n">ztop</span><span class="p">,</span> <span class="n">zbot</span><span class="p">,</span> <span class="n">fm</span><span class="p">,</span> <span class="s1">&#39;DEPTH&#39;</span><span class="p">,</span> <span class="s1">&#39;GR&#39;</span><span class="p">,</span> <span class="s1">&#39;RT&#39;</span><span class="p">,</span> <span class="s1">&#39;NPHI&#39;</span><span class="p">,</span> <span class="s1">&#39;RHOB&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># display plot only</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span><span class="o">.</span><span class="n">water_saturation</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;archie&#39;</span><span class="p">,</span> <span class="n">show_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># display data only</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">pp</span><span class="o">.</span><span class="n">water_saturation</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;archie&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="Modules" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Joshua Atolagbe.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+file_reader
+----------------------------
+
+.. automodule:: petrolib.file_reader
+   :members:
+   :undoc-members:
+   :show-inheritance:
