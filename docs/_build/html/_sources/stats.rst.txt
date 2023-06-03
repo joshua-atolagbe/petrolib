@@ -1,0 +1,7 @@
+stats
+---------------------
+
+.. automodule:: petrolib.stats
+   :members:
+   :undoc-members:
+   :show-inheritance:

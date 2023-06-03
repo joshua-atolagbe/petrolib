@@ -1,0 +1,7 @@
+util
+---------------------
+
+.. automodule:: petrolib.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
