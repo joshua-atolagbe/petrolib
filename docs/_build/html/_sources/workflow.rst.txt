@@ -1,7 +1,0 @@
-workflow
-------------------------
-
-.. automodule:: petrolib.workflow
-   :members:
-   :undoc-members:
-   :show-inheritance:
