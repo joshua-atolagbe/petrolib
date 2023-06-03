@@ -9,7 +9,7 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('.'))
 
 project = 'Petrolib'
 copyright = '2022, Joshua Atolagbe'
@@ -26,9 +26,6 @@ extensions = ['sphinx.ext.todo',
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
 ]
-
-master_doc='petrolib'
-root = 'petrolib'
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
