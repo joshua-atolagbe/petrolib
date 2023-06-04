@@ -1,4 +1,5 @@
-# Petrophysical Evaluation Package
+[![Documentation Status](https://readthedocs.org/projects/petrolib/badge/?version=latest)](https://petrolib.readthedocs.io/en/latest/?badge=latest)
+# Petrolib: Petrophysical Evaluation Package
 
 This is a python package designed to help users perform petrophysical analysis by estimating petrophysical parameters such as:
 ```
