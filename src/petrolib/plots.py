@@ -968,59 +968,78 @@ def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom
     #generating log tracks
     if len(logs) > 1:
         for i, j in enumerate(logs):
-
+            
             if isinstance(j, list):
-
-                assert len(j) > 1, 'Error. list of lists of curves must be greater than 1.'
+                assert len(j) > 1, 'Error. List of lists of curves must be greater than 1.'
                 np.random.shuffle(color)
-                for ii in range(len(j)):
-                    if logs[i][ii] == 'RT' or logs[i][ii] == 'ILD':
-                        # for resistivity, semilog plot
-                        ax[i].semilogx(df[logs[i][ii]], df[depth], color=color[-i], linewidth=1.)
 
-                    if ii == 0:# and logs[i][ii] != 'RT':
-                        # for non-resistivity, normal plot
-                        ax[i].plot(df[logs[i][ii]], df[depth], color=color[ii], linewidth=1.)
+                for ii, log_name in enumerate(j):
+                    axes = ax[i]  # Initialize axes for each log
+
+                    if log_name == 'RT' or log_name == 'ILD':
+                        # For resistivity, semilog plot
+                        axes.semilogx(df[log_name], df[depth], color=color[ii], linewidth=1.)
+                        axes.set_xticks([])
+                        axes.set_xticklabels([])
                         
-                        # ax[ii].set_xticklabels([]);  ax[ii].set_xticks([])
-                        ax[i].set_xticklabels([]);  ax[i].set_xticks([])
-                    if ii >= 1:# or logs[i][ii] != 'RT':
-                        ax[i].twiny().plot(df[logs[i][ii]], df[depth], color=color[ii], linewidth=1.)    
-                        ax[i].set_xticklabels([]);  ax[i].set_xticks([])                    
-                    
-                    
-                    ax[i].yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
-                    ax[i].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-                    
-                tracks = []
-
-                for _ in range(len(j)):
-                    tracks.append(ax[i].twiny())
-                
-                additive = 1.02
-                for _, axes in enumerate(tracks):
-
-                    axes.set_xlabel(logs[i][_])
-                    # axes.set_ylim(top, bottom)
-                    if logs[i][_] == 'NPHI' or logs[i][_] == 'PHIE':
-                        axes.set_xlim(df[logs[i][_]].max(), df[logs[i][_]].min())
-                        axes.set_xticks(list(np.linspace(df[logs[i][_]].max(), df[logs[i][_]].min(), num=4)))
-                    else:
-                        axes.set_xlim(df[logs[i][_]].min(), df[logs[i][_]].max())
-                        axes.set_xticks(list(np.linspace(df[logs[i][_]].min(), df[logs[i][_]].max(), num=4)))
+                    elif ii == 0: # and log_name != 'RT'
+                        # For non-resistivity, normal plot
+                        axes.plot(df[log_name], df[depth], color=color[ii], linewidth=1.)
+                        axes.set_xticks([])
+                        axes.set_xticklabels([])
                         
-                    axes.grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
-                    axes.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-                    axes.xaxis.label.set_color(color[_])
-                    axes.tick_params(axis='x', colors=color[_])
-                    axes.spines['top'].set_edgecolor(color[_])
-                    axes.spines["top"].set_position(("axes", additive))
-                    axes.xaxis.set_ticks_position("top")
-                    axes.xaxis.set_label_position("top")
-                    axes.set_frame_on(True)
-                    axes.patch.set_visible(False)
-                    axes.invert_yaxis()
-                    additive += 0.06
+
+                    elif ii >= 1: # or log_name != 'RT' 
+                        twin_axes = axes.twiny()
+                        twin_axes.plot(df[log_name], df[depth], color=color[ii], linewidth=1.)
+                        twin_axes.set_xticks([])   
+                        twin_axes.set_xticklabels([])
+                        twin_axes.xaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
+                        twin_axes.yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
+                        twin_axes.xaxis.label.set_color(color[ii])
+                        twin_axes.spines['top'].set_edgecolor(color[ii])
+                        twin_axes.spines["top"].set_position(("axes", 1.02))
+                        twin_axes.xaxis.set_ticks_position("top")
+                        twin_axes.xaxis.set_label_position("top")
+                        twin_axes.set_frame_on(True)
+                        twin_axes.patch.set_visible(False)
+                        twin_axes.invert_yaxis()
+                    
+                    axes.yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
+                    axes.yaxis.grid(which='minor', linestyle='-', linewidth=1, color='darkgrey')
+                    
+
+                    tracks = []
+
+                    np.random.shuffle(color)
+                    for _ in range(len(j)):
+                        tracks.append(ax[i].twiny())
+
+                    additive = 1.02
+                    for _, axes in enumerate(tracks):
+
+                        axes.set_xlabel(logs[i][_])
+                        #axes.set_ylim(top, bottom)
+
+                        if logs[i][_] == 'NPHI' or logs[i][_] == 'PHIE':
+                            axes.set_xlim(df[logs[i][_]].max(), df[logs[i][_]].min())
+                            axes.set_xticks(list(np.linspace(df[logs[i][_]].min(), df[logs[i][_]].max(), num=4)))
+                        else:
+                            axes.set_xlim(df[logs[i][_]].min(), df[logs[i][_]].max())
+                            axes.set_xticks(list(np.linspace(df[logs[i][_]].min(), df[logs[i][_]].max(), num=4)))
+
+                        axes.grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
+                        axes.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
+                        axes.xaxis.label.set_color(color[_])
+                        axes.tick_params(axis='x', colors=color[_])
+                        axes.spines['top'].set_edgecolor(color[_])
+                        axes.spines["top"].set_position(("axes", additive))
+                        axes.xaxis.set_ticks_position("top")
+                        axes.xaxis.set_label_position("top")
+                        axes.set_frame_on(True)
+                        axes.patch.set_visible(False)
+                        axes.invert_yaxis()
+                        additive += 0.06
   
             else:
                 np.random.shuffle(color)
