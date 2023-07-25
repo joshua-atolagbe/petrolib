@@ -1272,13 +1272,18 @@ def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom
 
     '''    
     df = df.copy()
-    
+
     # create the subplots; ncols equals the number of logs
-    fig, ax = plt.subplots(nrows=1, ncols=len(logs), figsize=figsize, sharey=True)
+    if len(logs) > 1:
+        fig, ax = plt.subplots(nrows=1, ncols=len(logs), figsize=figsize, sharey=True)
         
+    elif len(logs) == 1:
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize, sharey=True)
+        ax = [ax]  # Wrap the single axis into a list
+
     fig.suptitle(f'{title}', size=15, y=1.)
-    
-    #generating random number of colors equal to total number of logs
+
+    # generating random number of colors equal to the total number of logs
     cycol = cycle('bgyrcmk')
     tot_logs = 0
     for i in logs:
@@ -1289,158 +1294,62 @@ def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom
     color = [choice(next(cycol)) for i in range(tot_logs)]
     np.random.shuffle(color)
     
-    
-    #generating log tracks
-    if len(logs) > 1:
-        for i, j in enumerate(logs):
-
-            if isinstance(j, list):
-
-                assert len(j) > 1, 'Error. list of lists of curves must be greater than 1.'
-                np.random.shuffle(color)
-                for ii in range(len(j)):
-                    if logs[i][ii] == 'RT' or logs[i][ii] == 'ILD':
-                        # for resistivity, semilog plot
-                        ax[i].semilogx(df[logs[i][ii]], df[depth], color=color[-i], linewidth=1.)
-
-                    if ii == 0:# and logs[i][ii] != 'RT':
-                        # for non-resistivity, normal plot
-                        ax[i].plot(df[logs[i][ii]], df[depth], color=color[ii], linewidth=1.)
-                        
-                        # ax[ii].set_xticklabels([]);  ax[ii].set_xticks([])
-                        ax[i].set_xticklabels([]);  ax[i].set_xticks([])
-                    if ii >= 1:# or logs[i][ii] != 'RT':
-                        ax[i].twiny().plot(df[logs[i][ii]], df[depth], color=color[ii], linewidth=1.)    
-                        ax[i].set_xticklabels([]);  ax[i].set_xticks([])        
+    # generating log tracks
+    for i, j in enumerate(logs):
+        if isinstance(j, list):
+            assert len(j) > 1, 'Error. List of lists of curves must be greater than 1.'
+            np.random.shuffle(color)
+            for ii, log_name in enumerate(j):
+                axes = ax[i]  # Initialize axes for each log
+                if log_name == 'RT' or log_name == 'ILD':
+                    # For resistivity, semilog plot
+                    axes.semilogx(df[log_name], df[depth], color=color[ii], linewidth=1.)
+                    axes.set_xticklabels([])
+                    axes.set_xticks([])
                     
+                elif ii == 0: # and log_name != 'RT'
+                    # For non-resistivity, normal plot
+                    axes.plot(df[log_name], df[depth], color=color[ii], linewidth=1.)
+                    axes.set_xticklabels([])
+                    axes.set_xticks([])
                     
-                    ax[i].yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
-                    ax[i].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
+                elif ii >= 1: # or log_name != 'RT' 
+                    twin_axes = axes.twiny()
+                    twin_axes.plot(df[log_name], df[depth], color=color[ii], linewidth=1.)
+                    twin_axes.set_xticklabels([])
+                    twin_axes.set_xticks([]) 
                     
+                    twin_axes.xaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
+                    twin_axes.yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
+                    twin_axes.xaxis.label.set_color(color[ii])
+                    twin_axes.spines['top'].set_edgecolor(color[ii])
+                    twin_axes.spines["top"].set_position(("axes", 1.02))
+                    twin_axes.xaxis.set_ticks_position("top")
+                    twin_axes.xaxis.set_label_position("top")
+                    twin_axes.set_frame_on(True)
+                    twin_axes.patch.set_visible(False)
+                    twin_axes.invert_yaxis()
+
+                axes.yaxis.grid(which='minor', linestyle='-', linewidth=1, color='darkgrey')
+
                 tracks = []
 
+                np.random.shuffle(color)
                 for _ in range(len(j)):
                     tracks.append(ax[i].twiny())
-                
+
                 additive = 1.02
                 for _, axes in enumerate(tracks):
 
                     axes.set_xlabel(logs[i][_])
-                    # axes.set_ylim(top, bottom)
+                    #axes.set_ylim(top, bottom)
+
                     if logs[i][_] == 'NPHI' or logs[i][_] == 'PHIE':
                         axes.set_xlim(df[logs[i][_]].max(), df[logs[i][_]].min())
                         axes.set_xticks(list(np.linspace(df[logs[i][_]].min(), df[logs[i][_]].max(), num=4)))
                     else:
                         axes.set_xlim(df[logs[i][_]].min(), df[logs[i][_]].max())
                         axes.set_xticks(list(np.linspace(df[logs[i][_]].min(), df[logs[i][_]].max(), num=4)))
-                        
-                    axes.grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
-                    axes.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-                    axes.xaxis.label.set_color(color[_])
-                    axes.tick_params(axis='x', colors=color[_])
-                    axes.spines['top'].set_edgecolor(color[_])
-                    axes.spines["top"].set_position(("axes", additive))
-                    axes.xaxis.set_ticks_position("top")
-                    axes.xaxis.set_label_position("top")
-                    axes.set_frame_on(True)
-                    axes.patch.set_visible(False)
-                    axes.invert_yaxis()
-                    additive += 0.06
-  
-            else:
-                np.random.shuffle(color)
-                if logs[i] == 'RT' or logs[i] == 'ILD':
-                    # for resistivity, semilog plot
-                    ax[i].semilogx(df[logs[i]], df[depth], color=color[i], linewidth=1.)
-                    
-                else:
-                    # for non-resistivity, normal plot
-                    ax[i].plot(df[logs[i]], df[depth], color=color[i], linewidth=1.)
-
-                if logs[i] == 'NPHI' or logs[i] == 'PHIE':
-                    ax[i].invert_xaxis()
-
-                ax[i].set_title(logs[i], pad=15)
-                ax[i].minorticks_on()
-                ax[i].set_ylim(top, bottom); ax[i].invert_yaxis()
-                ax[i].grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
-                ax[i].grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-                ax[i].xaxis.label.set_color(color[i])
-                ax[i].tick_params(axis='x', colors=color[i])
-                ax[i].spines['top'].set_edgecolor(color[i])
-                ax[i].spines["top"].set_position(("axes", 1.02)); ax[i].xaxis.set_ticks_position("top")
-                ax[i].xaxis.set_label_position("top")
-                ax[i].set_frame_on(True)
-                ax[i].patch.set_visible(False)
-                
-    elif len(logs) == 1:
-            
-        for idxi, i in enumerate(logs):
-            if not isinstance(i, list):
-                np.random.shuffle(color)
-                if i == 'RT' or i == 'ILD':
-                    # for resistivity, semilog plot
-                    plt.semilogx(df[i], df[depth], color=color[idxi], linewidth=1.)
-                else:
-                        # for non-resistivity, normal plot
-                    plt.plot(df[i], df[depth], color=color[idxi], linewidth=1.)
-
-                if i == 'NPHI' or i == 'PHIE':
-                    plt.xlim(df[i].max(), df[i].min())
-
-                plt.title(i, pad=15)
-                plt.minorticks_on()
-                plt.ylim(bottom, top);
-                plt.grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
-                plt.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-                plt.gca().tick_params(axis='x', colors=color[idxi])
-                plt.gca().spines['top'].set_edgecolor(color[idxi])
-                plt.gca().spines["top"].set_position(("axes", 1.02)); 
-                plt.gca().xaxis.set_ticks_position("top")
-                plt.gca().xaxis.set_label_position("top")
-                plt.gca().xaxis.label.set_color(color[idxi])
-                
-            else:
-                np.random.shuffle(color)
-                assert len(i) > 1, 'List of list of curves must be greater than one.'
-                for idxii, ii in enumerate(range(len(i))):
-                    if logs[idxi][idxii] == 'RT' or logs[idxi][idxii] == 'ILD':
-                        # for resistivity, semilog plot
-                        ax.semilogx(df[logs[idxi][idxii]], df[depth], color=color[idxii], linewidth=1.)
-                        # ax.set_xticklabels([]);ax.set_xticks([])
-                    if idxii == 0:
-                        # for non-resistivity, normal plot
-                        ax.plot(df[logs[idxi][idxii]], df[depth], color=color[idxii], linewidth=1.)
-                        ax.set_xticklabels([]); ax.set_xticks([])
-
-                    if idxii >= 1:
-                        ax.twiny().plot(df[logs[idxi][idxii]], df[depth], color=color[idxii], linewidth=1.)    
-                        ax.set_xticklabels([]);  ax.set_xticks([])
-
-                    ax.yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
-                    ax.yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-
-                             
-                tracks = []
-                
-                np.random.shuffle(color)
-                for x in range(len(i)):
-                    tracks.append(ax.twiny())
-
-                additive = 1.02
-                for _, axes in enumerate(tracks):
-
-                    axes.set_xlabel(logs[idxi][_])
-                    # axes.minorticks_on()
-                    axes.set_ylim(top, bottom)
-
-                    if logs[idxi][_] == 'NPHI' or logs[idxi][_] == 'PHIE':
-                        axes.set_xlim(df[logs[idxi][_]].max(), df[logs[idxi][_]].min())
-                        axes.set_xticks(list(np.linspace(df[logs[idxi][_]].max(), df[logs[idxi][_]].min(), num=4)))
-                    else:
-                        axes.set_xlim(df[logs[idxi][_]].min(), df[logs[idxi][_]].max())
-                        axes.set_xticks(list(np.linspace(df[logs[idxi][_]].min(), df[logs[idxi][_]].max(), num=4)))
-                        
 
                     axes.grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
                     axes.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
@@ -1454,8 +1363,40 @@ def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom
                     axes.patch.set_visible(False)
                     axes.invert_yaxis()
                     additive += 0.06
+
+        else:
+            np.random.shuffle(color)
+            log_name = j
+            axes = ax[i]
+            if log_name == 'RT' or log_name == 'ILD':
+                # For resistivity, semilog plot
+                axes.semilogx(df[log_name], df[depth], color=color[i], linewidth=1.)
+                
+            else:
+                # For non-resistivity, normal plot
+                axes.plot(df[log_name], df[depth], color=color[i], linewidth=1.)
+
+            if log_name == 'NPHI' or log_name == 'PHIE':
+                axes.invert_xaxis()
+
+            axes.set_title(log_name, pad=15)
+            axes.minorticks_on()
+            axes.set_ylim(top, bottom)
+            axes.invert_yaxis()
+            axes.grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
+            axes.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
+            axes.xaxis.label.set_color(color[i])
+            axes.tick_params(axis='x', colors=color[i])
+            axes.spines['top'].set_edgecolor(color[i])
+            axes.spines["top"].set_position(("axes", 1.02))
+            axes.xaxis.set_ticks_position("top")
+            axes.xaxis.set_label_position("top")
+            axes.set_frame_on(True)
+            axes.patch.set_visible(False)
+            axes.yaxis.grid(True, linestyle='-', linewidth=1, color='darkgrey')
+            axes.invert_yaxis()
 
     plt.tight_layout(h_pad=1)
-    fig.subplots_adjust(wspace = 0.04)
+    fig.subplots_adjust(wspace=0.04)
 
     plt.show()
