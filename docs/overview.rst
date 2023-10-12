@@ -22,7 +22,7 @@ Interestingly, the parameters are computed and displayed only for the zones of i
 
 You can install the package into your local machine using the `pip` command:
 :: 
-   pip install petrolib
+   pip install -U petrolib
 
 
 **Functionalities**

@@ -22,14 +22,14 @@ Installation
 ============
 You can install the package into your local machine using the `pip` command:
 :: 
-   pip install petrolib
+   pip install -U petrolib
 
 To import the package, use:
 ::
-   import petrolib
-   print(petrolib.__version__)
+   import petrolib as pl
+   print(pl.__version__)
 
-   >>> '1.2.5'
+   >>> '1.2.6'
 
 Contents
 ========
