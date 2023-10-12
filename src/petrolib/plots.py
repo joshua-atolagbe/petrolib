@@ -18,6 +18,9 @@ from matplotlib import pyplot as plt
 from typing import *
 from random import choice
 from matplotlib.patches import Patch 
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import matplotlib.colors as colors
+
 
 def plotLoc(data:list[lasio.las.LASFile], shape_file:Path=None, area:str=None, figsize:tuple=(7, 7),
              label:list=None, withmap:bool=False, return_table:bool=False) -> pd.DataFrame|None:
@@ -88,7 +91,8 @@ def plotLoc(data:list[lasio.las.LASFile], shape_file:Path=None, area:str=None, f
     a, b = np.array(longitude), np.array(latitude)
     cycol = cycle('bgrcmk')
     color = [choice(next(cycol)) for i in range(len(well_name))]
-
+    np.random.shuffle(color)
+    
     #plot well coordinates on map
     if withmap == True:
         
@@ -155,6 +159,294 @@ def plotLoc(data:list[lasio.las.LASFile], shape_file:Path=None, area:str=None, f
         pass
 
 
+def plotFaciesZoneCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:str, facies:str,
+                         ztop:float, zbot:float, facies_colors:list[str], facies_labels:list[str],
+                        ztops:list[float], zbots:list[float], zonename:list[str], limit:str, res_thres:float=10.,
+                        palette_op:str=None, fill:str=None, flag_name = 'Lithofacies',
+                       title:str='Log plot', figsize:tuple=(10, 20)) -> None:
+    r'''
+    Function for plotting three combo logs alongside the zonation/reservoir track
+
+    Parameters
+    ----------
+
+    data : pd.DataFrame
+        Dataframe of data 
+
+    depth : str
+        Depth column 
+
+    gr : str
+        Gamma ray column 
+
+    res : str
+        Resistivity column
+
+    nphi :  str
+        Neutron porosity column
+
+    rhob :  str
+        Bulk density column
+
+    facies : str
+        Fluid/LithoFacies column
+
+    ztop : float 
+        Top or minimum depth value
+
+    zbot : float
+        Bottom or maximum depth value
+
+    facies_colors: list
+        Facies colors. Must be equal to number of unique `facies` and `facies_label`
+
+    ztops : list of float
+        Tops (depth) of each reservoir/zones
+
+    zbots : list of float
+        Bottom (depth) of each reservoir/zones
+
+    zonename : list of str
+        Name of each zones
+
+    limit : str default None
+        Tells which side to fill the gamma ray track, ['left', 'right'].
+        lf None, it's filled in both sides delineating shale-sand region
+
+    res_thres : float
+        Resistivity threshold to use in the identification on hydrocarbon bearing zone
+
+    palette_op : str optional 
+        Palette option to fill gamma ray log. If None, `fill` must be provided
+
+    fill : str default None
+        To show either of the porous and/or non porous zones in the neutron-density crossover.
+        Can either be ['left', 'right', 'both']
+
+        * default None - show neither of the porous nor non-porous zones
+        * 'left' - shows only porous zones
+        * 'right' - shows only non-porous zones
+        * 'both' - shows both porous and non-porous zones
+                
+    flag_name : str
+        x-label for facies log
+
+    title : str
+        Title of plot
+
+    figsize : tuple
+        Size of plot
+        
+    Example
+    -------
+    >>> from petrolib.plots import plotFaciesZoneCombo
+    >>> plotFaciesZoneCombo(well11, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB', 'LITHO', ztop=5500, zbot=9000,
+    >>>              ztops=[5561.38,7116.47, 8780.19], zbots=[5761.46, 7351.19, 8923.58], zonename=['SAND A', 'SAND B', 'SAND C'], 
+    >>>              fill='both', limit=None, figsize=(13, 30), title='ATAGA-11')
+    '''
+
+    depth_log:pd.Series = data[depth]
+    gr_log:pd.Series = data[gr]
+    res_log:pd.Series = data[res]
+    nphi_log:pd.Series = data[nphi]
+    rhob_log:pd.Series = data[rhob]
+
+    assert len(data[facies].unique()) == len(facies_labels) == len(facies_colors), 'Number of unique facies, facies labels and facies colors must be equal'
+    assert len(ztops) == len(zbots) == len(zonename), 'Number of tops, bottoms and zonename must be equal'
+
+    # color-fill options
+    span = abs(gr_log.min()-gr_log.max())
+    if palette_op != None:
+        cmap=plt.get_cmap(palette_op)
+    else:
+        pass
+    color_index = np.arange(gr_log.min(), gr_log.max(), span/100)
+
+    # create the subplots; ncols equals the number of logs
+    fig, ax = plt.subplots(nrows=1, ncols=5, figsize=figsize)
+    fig.suptitle(f'{title}', size=15, y=1.)
+
+    #for GR track
+    ax[0].minorticks_on()
+    ax[0].grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
+    ax[0].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
+    ax[0].plot(gr_log, depth_log, color='black', linewidth=1.0)
+    ax[0].set_xlim(gr_log.min(), gr_log.max())
+    ax[0].set_ylim(ztop, zbot)
+    ax[0].invert_yaxis()
+    ax[0].set_ylabel('Depth (m/ft)')
+    ax[0].xaxis.label.set_color('black')
+    ax[0].tick_params(axis='x', colors='black')
+    ax[0].spines['top'].set_edgecolor('black')
+    ax[0].set_xlabel('Gamma ray\nGR (gAPI)', color='black', labelpad=15)
+    ax[0].spines["top"].set_position(("axes", 1.01))
+    ax[0].xaxis.set_ticks_position("top")
+    ax[0].xaxis.set_label_position("top")
+    ax[0].hlines([t for t in ztops], xmin=gr_log.min(), xmax=gr_log.max(), colors='black', linestyles='solid',linewidth=1.)
+    ax[0].hlines([b for b in zbots], xmin=gr_log.min(), xmax=gr_log.max(), colors='black', linestyles='solid', linewidth=1.)
+    
+    if palette_op == None:
+        assert limit == None, 'Set limit to None'
+        gr_base:float = 75.#(gr_log.max() - gr_log.min())/2
+        ax[0].fill_betweenx(depth_log, gr_base, gr_log, where=gr_log<=gr_base, facecolor='yellow', linewidth=0)
+        ax[0].fill_betweenx(depth_log, gr_log, gr_base, where=gr_log>=gr_base, facecolor='brown', linewidth=0)
+
+    elif palette_op != None:
+        assert limit != None, 'Set limit value. Can\'t be None'
+        if limit == 'left':
+            for index in sorted(color_index):
+                index_value = (index-gr_log.min())/span
+                palette = cmap(index_value)
+                ax[0].fill_betweenx(depth_log, gr_log.min(), gr_log, where=gr_log>=index, color=palette)
+
+        elif limit == 'right':
+            for index in sorted(color_index):
+                index_value = (index-gr_log.min())/span
+                palette = cmap(index_value)
+                ax[0].fill_betweenx(depth_log, gr_log.max(), gr_log, where=gr_log>=index, color=palette)
+
+
+    #for resitivity
+    ax[1].minorticks_on()
+    ax[1].grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
+    ax[1].grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
+    ax[1].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
+    ax[1].semilogx(res_log, depth_log, color='red', linewidth=1.0, linestyle='--')
+    ax[1].set_xlim(res_log.min(), res_log.max())
+    ax[1].set_ylim(ztop, zbot)
+    ax[1].invert_yaxis()
+    ax[1].xaxis.label.set_color('red')
+    ax[1].tick_params(axis='x', colors='red')
+    ax[1].spines['top'].set_edgecolor('red')
+    ax[1].set_xlabel('Resistivity\nILD (ohm.m)', labelpad=15)
+    ax[1].spines["top"].set_position(("axes", 1.01))
+    ax[1].xaxis.set_ticks_position("top")
+    ax[1].xaxis.set_label_position("top")
+    ax[1].fill_betweenx(depth_log, res_thres, res_log, where=res_log >= res_thres, interpolate=True, color='red', linewidth=0)
+    ax[1].hlines([t for t in ztops], xmin=res_log.min(), xmax=res_log.max(), colors='black', linestyles='solid',linewidth=1.)
+    ax[1].hlines([b for b in zbots], xmin=res_log.min(), xmax=res_log.max(), colors='black', linestyles='solid', linewidth=1.)
+    ax[1].set_yticklabels([])
+
+    #for nphi
+    ax[2].minorticks_on()
+    ax[2].yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
+    ax[2].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
+    ax[2].set_xticklabels([]);ax[2].set_xticks([])
+    ax[2].set_yticklabels([])
+    rhob_ = ax[2].twiny()
+    rhob_.plot(rhob_log, depth_log, color='red', linewidth=1.)
+    rhob_.set_xlim(rhob_log.min(), rhob_log.max())
+    rhob_.set_ylim(ztop, zbot)
+    rhob_.invert_yaxis()
+    rhob_.xaxis.label.set_color('red')
+    rhob_.tick_params(axis='x', colors='red')
+    rhob_.spines['top'].set_edgecolor('red')
+    rhob_.set_xlabel('Bulk Density\nRHOB (g/cm3)', color='red')
+    rhob_.spines["top"].set_position(("axes", 1.01))
+    rhob_.xaxis.set_ticks_position("top")
+    rhob_.xaxis.set_label_position("top")
+    rhob_.set_xticks(list(np.linspace(rhob_log.min(), rhob_log.max(), num=4)))
+    rhob_.hlines([t for t in ztops], xmin=rhob_log.min(), xmax=rhob_log.max(), colors='black', linestyles='solid',linewidth=1.)
+    rhob_.hlines([b for b in zbots], xmin=rhob_log.min(), xmax=rhob_log.max(), colors='black', linestyles='solid', linewidth=1.)
+
+    nphi_ = ax[2].twiny()
+    nphi_.grid(which='major', linestyle='-', linewidth=0.5, color='darkgrey')
+    nphi_.plot(nphi_log, depth_log, color='blue', linewidth=1.0, linestyle='--')
+    nphi_.set_xlim(nphi_log.max(), nphi_log.min())
+    nphi_.set_ylim(ztop, zbot)
+    nphi_.invert_yaxis()
+    # nphi_.invert_xaxis()
+    nphi_.xaxis.label.set_color('blue')
+    nphi_.tick_params(axis='x', colors='blue')
+    nphi_.spines['top'].set_edgecolor('blue')
+    nphi_.set_xlabel('Neutron Porosity\nNPHI (m3/m3)', color='blue')
+    nphi_.spines["top"].set_position(("axes", 1.05))
+    nphi_.xaxis.set_ticks_position("top")
+    nphi_.xaxis.set_label_position("top")
+    nphi_.set_xticks(list(np.linspace(nphi_log.min(), nphi_log.max(), num=4)))
+    nphi_.hlines([t for t in ztops], xmin=nphi_log.min(), xmax=nphi_log.max(), colors='black', linestyles='solid',linewidth=1.)
+    nphi_.hlines([b for b in zbots], xmin=nphi_log.min(), xmax=nphi_log.max(), colors='black', linestyles='solid', linewidth=1.)
+    #setting up the nphi and rhob fill
+    #inspired from 
+    x1=rhob_log
+    x2=nphi_log
+    
+    x = np.array(rhob_.get_xlim())
+    z = np.array(nphi_.get_xlim())
+
+    nz=((x2-np.max(z))/(np.min(z)-np.max(z)))*(np.max(x)-np.min(x))+np.min(x)
+    
+    
+    if fill == 'left':
+        #shows only porous zones
+        rhob_.fill_betweenx(depth_log, x1, nz, where=x1<=nz, interpolate=True, hatch='..', facecolor='yellow', linewidth=0)
+    elif fill == 'right':
+        #shows only non-porous zones
+        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='...', facecolor='slategray', linewidth=0)
+    elif fill == 'both':
+        #shows both porous and non-porous zones
+        rhob_.fill_betweenx(depth_log, x1, nz, where=x1<=nz, interpolate=True, hatch='..', facecolor='yellow', linewidth=0)
+        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='...', facecolor='slategray', linewidth=0)
+
+    #formation subplot
+    ax[3].set_ylim(ztop, zbot);# ax[-1].invert_yaxis()
+    ax[3].set_title('Zones', pad=45)
+    ax[3].set_xticks([])
+    ax[3].set_yticklabels([])
+    ax[3].set_xticklabels([])
+    ax[3].hlines([t for t in ztops], xmin=0, xmax=1, colors='black', linestyles='solid',linewidth=1.)
+    ax[3].hlines([b for b in zbots], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
+    ax[3].invert_yaxis()
+    formations = ax[3]
+
+    #delineating zones
+    # np.random.seed(2)
+    cycol = cycle('bgrcymk')
+    color = [choice(next(cycol)) for i in range(len(ztops))]
+    np.random.shuffle(color)
+    for i in ax:
+        for t,b, c in zip(ztops, zbots, color):
+            i.axhspan(t, b, color=c, alpha=.3)
+        continue
+    #adding zone names
+    fm_mid = []
+            
+    for t, b in zip(ztops, zbots):
+        fm_mid.append((t+(b-t)/2))
+    
+    for label, fm_mids in zip(zonename, fm_mid):
+        formations.text(0.5, fm_mids, label, rotation=0,
+                verticalalignment='center', fontweight='bold',
+                fontsize='large')
+
+    facies_colormap = {}
+    for ind, label in enumerate(facies_labels):
+        facies_colormap[label] = facies_colors[ind]
+
+    no = len(data[facies].unique())
+
+    cmap_facies = colors.ListedColormap(
+            facies_colors[0 : no], 'indexed'
+            )
+    # ax[-1].invert_yaxis()
+    cluster3=np.repeat(np.expand_dims(data[facies].values,1), 100, 1)
+    im=ax[-1].imshow(cluster3, interpolation='none', aspect='auto',
+                    cmap=cmap_facies,vmin=0, vmax=no)
+    
+    divider = make_axes_locatable(ax[-1])
+    cax = divider.append_axes("right", size="20%", pad=0.05)
+    cbar=plt.colorbar(im, cax=cax)
+    cbar.set_label((150*' ').join(facies_labels))
+    cbar.set_ticks(range(0,1)); cbar.set_ticklabels('')
+    x = [4]
+    
+    for i, f in zip(x, [flag_name]):
+        ax[i].set_title(f, pad=45)
+        ax[i].set_xticks([])
+        ax[i].set_yticklabels([])
+        ax[i].set_xticklabels([])
+    plt.tight_layout(h_pad=1.2)
+    fig.subplots_adjust(wspace = 0.0)
 
 def tripleCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:str, ztop:float, zbot:float, 
                 res_thres:float=10.0, fill:str=None, palette_op:str=None,
@@ -252,6 +544,7 @@ def tripleCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:st
     ax[0].set_xlim(gr_log.min(), gr_log.max())
     ax[0].set_ylim(ztop, zbot)
     ax[0].invert_yaxis()
+    ax[0].set_ylabel('Depth (m/ft)')
     ax[0].xaxis.label.set_color('black')
     ax[0].tick_params(axis='x', colors='black')
     ax[0].spines['top'].set_edgecolor('black')
@@ -350,11 +643,11 @@ def tripleCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:st
         rhob_.fill_betweenx(depth_log, x1, nz, where=x1<=nz, interpolate=True, hatch='..', facecolor='yellow', linewidth=0)
     elif fill == 'right':
         #shows only non-porous zones
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='---', facecolor='slategray', linewidth=0)
+        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='...', facecolor='slategray', linewidth=0)
     elif fill == 'both':
         #shows both porous and non-porous zones
         rhob_.fill_betweenx(depth_log, x1, nz, where=x1<=nz, interpolate=True, hatch='..', facecolor='yellow', linewidth=0)
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='---', facecolor='slategray', linewidth=0)
+        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='...', facecolor='slategray', linewidth=0)
 
     plt.tight_layout(h_pad=1.2)
     fig.subplots_adjust(wspace = 0.0)
@@ -512,6 +805,7 @@ class Zonation:
             ax[i].hlines([t for t in self._ztop], xmin=self._df[logs[i]].min(), xmax=self._df[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
             ax[i].hlines([b for b in self._zbot], xmin=self._df[logs[i]].min(), xmax=self._df[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
         
+        ax[0].set_ylabel('DEPTH (m/ft)')
 
         #formation subplot
         ax[-1].set_ylim(top, bottom); ax[-1].invert_yaxis()
@@ -537,7 +831,7 @@ class Zonation:
                     fontsize='large')
     #    
         plt.tight_layout(h_pad=1)
-        fig.subplots_adjust(wspace = 0.04)
+        fig.subplots_adjust(wspace = 0.0)
         plt.show()
 
 
@@ -608,6 +902,8 @@ def plotLog(df:pd.DataFrame, depth:str, logs:List[str], top:float, bottom:float,
                 ax[i].spines['top'].set_edgecolor(color[i])
                 ax[i].spines["top"].set_position(("axes", 1.02)); ax[i].xaxis.set_ticks_position("top")
                 ax[i].xaxis.set_label_position("top")
+
+            ax[0].set_ylabel('DEPTH (m/ft)')
         
         elif len(logs) == 1:
             
@@ -629,8 +925,11 @@ def plotLog(df:pd.DataFrame, depth:str, logs:List[str], top:float, bottom:float,
                 plt.grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
                 plt.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
                 plt.tick_params(axis='x', colors=next(cycol))
+            
+            ax[0].set_ylabel('DEPTH (m/ft)')
+
         plt.tight_layout(h_pad=1)
-        fig.subplots_adjust(wspace = 0.02)
+        fig.subplots_adjust(wspace = 0.0)
         plt.show()
 
 
@@ -733,6 +1032,7 @@ def plotZoneCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:
     ax[0].set_xlim(gr_log.min(), gr_log.max())
     ax[0].set_ylim(ztop, zbot)
     ax[0].invert_yaxis()
+    ax[0].set_ylabel('Depth (m/ft)')
     ax[0].xaxis.label.set_color('black')
     ax[0].tick_params(axis='x', colors='black')
     ax[0].spines['top'].set_edgecolor('black')
@@ -838,11 +1138,11 @@ def plotZoneCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:
         rhob_.fill_betweenx(depth_log, x1, nz, where=x1<=nz, interpolate=True, hatch='..', facecolor='yellow', linewidth=0)
     elif fill == 'right':
         #shows only non-porous zones
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='---', facecolor='slategray', linewidth=0)
+        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='...', facecolor='slategray', linewidth=0)
     elif fill == 'both':
         #shows both porous and non-porous zones
         rhob_.fill_betweenx(depth_log, x1, nz, where=x1<=nz, interpolate=True, hatch='..', facecolor='yellow', linewidth=0)
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='---', facecolor='slategray', linewidth=0)
+        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='...', facecolor='slategray', linewidth=0)
 
     #formation subplot
     ax[-1].set_ylim(ztop, zbot); ax[-1].invert_yaxis()
@@ -930,11 +1230,11 @@ def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom
     if facies is None:
         if len(logs) > 1:
             fig, ax = plt.subplots(nrows=1, ncols=len(logs), figsize=figsize, sharey=True)
-            ax[0].set_ylabel("DEPTH")  # Set y-axis label for the first log track
+            ax[0].set_ylabel("DEPTH(m/ft)")  # Set y-axis label for the first log track
         
         elif len(logs) == 1:
             fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize, sharey=True)
-            ax.set_ylabel("DEPTH")  # Set y-axis label for a single log track
+            ax.set_ylabel("DEPTH(m/ft)")  # Set y-axis label for a single log track
             ax = [ax]
     else:
         fig, ax = plt.subplots(nrows=1, ncols=len(logs)+1, figsize=figsize, sharey=True)
@@ -1097,7 +1397,7 @@ def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom
                          loc='upper left', borderaxespad=0.5)            
    
     plt.tight_layout(h_pad=1)
-    fig.subplots_adjust(wspace=0.04)
+    fig.subplots_adjust(wspace=0.0)
 
     plt.show()
 
@@ -1143,11 +1443,11 @@ def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom
     # create the subplots; ncols equals the number of logs
     if len(logs) > 1:
         fig, ax = plt.subplots(nrows=1, ncols=len(logs), figsize=figsize, sharey=True)
-        ax[0].set_ylabel("DEPTH")  # Set y-axis label for the first log track
+        ax[0].set_ylabel("DEPTH(m/ft)")  # Set y-axis label for the first log track
         
     elif len(logs) == 1:
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize, sharey=True)
-        ax.set_ylabel("DEPTH")  # Set y-axis label for a single log track
+        ax.set_ylabel("DEPTH(m/ft)")  # Set y-axis label for a single log track
         ax = [ax]  # Wrap the single axis into a list
         
 
@@ -1270,6 +1570,6 @@ def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom
             axes.invert_yaxis()
 
     plt.tight_layout(h_pad=1)
-    fig.subplots_adjust(wspace=0.04)
+    fig.subplots_adjust(wspace=0.0)
 
     plt.show()
