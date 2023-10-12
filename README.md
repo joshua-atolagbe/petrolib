@@ -37,7 +37,7 @@ The package is designed to handle:
 ### Installation
 
 ```
-pip install petrolib
+pip install -U petrolib
 ```
 
 
