@@ -14,7 +14,7 @@ from scipy.stats.stats import pearsonr
 from itertools import cycle
 from random import choice
 from matplotlib import pyplot as plt
-
+from seaborn import histplot
 
 class Correlation:
     
@@ -102,7 +102,7 @@ class Correlation:
         return df
 
 
-    def plot_heatmap(self, title:str='Correlation Heatmap', figsize:slice=(12, 7), annot:bool=True, cmap=None):
+    def plot_heatmap(self, title:str='Correlation Heatmap', figsize:tuple=(12, 7), annot:bool=True, cmap=None):
 
         r'''
         Plots the heat map of Correlation Matrix
@@ -112,7 +112,7 @@ class Correlation:
         title : str
             Title of plot
         
-        figsize : slice
+        figsize : tuple
             Size of plot
 
         annot : bool, default True
@@ -134,7 +134,8 @@ class Correlation:
         plt.title(title)
         sns.heatmap(corr, annot=annot, vmin=-1, vmax=1, cmap=cmap)
 
-def displayFreq(df:pd.DataFrame, *cols:tuple[str], bins:int=12, figsize:slice=(8, 8)):
+def displayFreq(df:pd.DataFrame, *cols:tuple[str], bins:int=12, kde:bool=True,
+                 figsize:tuple=(8, 10)):
     '''
     Function to plot the frequency distribution of well log curves
     
@@ -149,7 +150,7 @@ def displayFreq(df:pd.DataFrame, *cols:tuple[str], bins:int=12, figsize:slice=(8
     bins : int
         Number of bins to group the data
         
-    figsize : slice
+    figsize : tuple
         Size of plot
         
     Returns
@@ -165,13 +166,14 @@ def displayFreq(df:pd.DataFrame, *cols:tuple[str], bins:int=12, figsize:slice=(8
     #randomnly generated colors 
     cycol = cycle('bgrcmk')
     color = [choice(next(cycol)) for i in range(len(cols))]
+    np.random.shuffle(color)
 
     plt.subplots(nrows=1, ncols=len(cols), figsize=figsize)
     plt.suptitle(f'Frequency Distribution', fontsize=20)
 
     for i, col in enumerate(cols):
         plt.subplot(2, len(cols)-(len(cols)//2), i+1)
-        df[col].plot.hist(bins=bins, color=color[i], alpha=0.5)
+        histplot(data=df, x=col, bins=bins, kde=kde, color=color[i])
         plt.grid(which='major', linestyle=':', linewidth='1', color='lightgray')
         plt.title('Histogram of ' + col)
         plt.ylabel('Frequency')# Set text for y axis
