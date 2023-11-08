@@ -175,7 +175,7 @@ class Quanti(object):
 
         return self._results, data
 
-    def vshale(self, method:str='linear', show_plot:bool=False, palette_op:str=None, figsize:tuple=None):
+    def vshale(self, method:str='linear', show_plot:bool=False, palette_op:str=None, figsize:tuple=None, gr_base:float=None):
         
         '''
 
@@ -198,6 +198,9 @@ class Quanti(object):
 
         figsize: tuple default None
             Size of plot
+
+        gr_base: float default None
+            Gamma Ray base value
 
         Returns
         ------
@@ -274,7 +277,12 @@ class Quanti(object):
             color_index = np.arange(0, 1, span/10)
 
             logs = [self._gr, 'VShale']
-            gr_base = 75.#(data[self._gr].max() - data[self._gr].min())/2
+
+            if gr_base == None:
+                gr_base = 75. #(data[self._gr].max() - data[self._gr].min())/2
+            else:
+                gr_base = gr_base
+
             for i in range(2):
                 
                 ax[i].plot(data[logs[i]], data[self._depth], color='black', linewidth=0.5)
@@ -639,7 +647,7 @@ class Quanti(object):
                     ax[i].set_xlim(1., 0.)
                     ax[i].hlines([t for t in self._ztop], xmin=0, xmax=1, colors='black', linestyles='solid')
                     ax[i].hlines([b for b in self._zbot], xmin=0, xmax=1, colors='black', linestyles='solid')
-                    ax[i].fill_betweenx(data[self._depth], data[logs[i]].max(), data[logs[i]], where=data[logs[i]]<=data[logs[i]].max(), facecolor='lightblue', interpolate=True, linewidth=0)
+                    ax[i].fill_betweenx(data[self._depth], 1, data[logs[i]], where=data[logs[i]]<=data[logs[i]].max(), facecolor='lightblue', interpolate=True, linewidth=0)
 
                 ax[i].set_title(logs[i], pad=15)
                 ax[i].minorticks_on()
@@ -853,7 +861,7 @@ class Quanti(object):
             return new_data
 
     def flags(self, vsh_cutoff:float, por_cutoff:float, sw_cutoff:float, 
-                        ref_unit:str='m', show_plot:bool=False, palette_op:str=None, figsize:tuple=None):
+                        ref_unit:str='m', show_plot:bool=False, palette_op:str=None, figsize:tuple=None, gr_base:float=None):
 
         '''
 
@@ -885,6 +893,9 @@ class Quanti(object):
 
         figsize: tuple default None
             Size of plot
+
+        gr_base: float default None
+            Gamma Ray base value
 
         Returns
         ------
@@ -967,7 +978,10 @@ class Quanti(object):
             cmap=plt.get_cmap(self._pale)
             color_index = np.arange(0, 1, span/10)
 
-            gr_base = 75.#(data[self._gr].max() - data[self._gr].min())/2
+            if gr_base == None:
+                gr_base = 75. #(data[self._gr].max() - data[self._gr].min())/2
+            else:
+                gr_base = gr_base
 
             #numeric plots
             for i in range(len(logs)):
