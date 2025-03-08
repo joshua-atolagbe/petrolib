@@ -1,13 +1,16 @@
 [![Documentation Status](https://readthedocs.org/projects/petrolib/badge/?version=latest)](https://petrolib.readthedocs.io/en/latest/?badge=latest) [![PyPI version](https://badge.fury.io/py/petrolib.svg)](https://badge.fury.io/py/petrolib) [![Downloads](https://static.pepy.tech/badge/petrolib)](https://pepy.tech/project/petrolib) ![PyPI](https://img.shields.io/pypi/v/petrolib) ![PyPI - License](https://img.shields.io/pypi/l/petrolib) ![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/joshua-atolagbe/petrolib) ![GitHub contributors](https://img.shields.io/github/contributors/joshua-atolagbe/petrolib) 
-# Petrolib: Petrophysical Evaluation Package
+<div style="display: flex; align-items: center;">
+    <img src="files/logo.png" style="height: 120px; margin-right: 20px;">
+    <h1>Petrolib: A Lightweight Package for Petrophysical Evaluation</h1>
+</div>
 
 This is a python package designed to help users perform petrophysical analysis by estimating petrophysical parameters such as:
-```
+
 * Volume of Shale using various methods like Clavier, Stieber and Larionov methods
 * Porosity - Effective and Total porosities using the density and Wyllie's sonic methods.
 * Water Saturation - using both archie and simmandoux methods
 * Permeability
-```
+
 
 In addition to estimating these parameters, log plots are automatically displayed for proper interpretation. Also a pay summary result/dataframe is produced to help quantify the over-all quality of the reservoirs. Cutoff such as the porosity, shale volume and water saturation are applied to flag pay regions. The pay summary include:
 
@@ -36,13 +39,15 @@ The package is designed to handle:
 
 ### Installation
 
-```
+```python
 pip install -U petrolib
 ```
 
 
 ### Quick tutorial
-```
+
+#### 1. Load data
+```python
 #import necessaries
 from pathlib import Path
 from petrolib import procs
@@ -52,11 +57,17 @@ from petrolib.plots import tripleCombo, Zonation, plotLog
 
 #load data
 well_path = Path(r"./15_9-19.las")
-tops_path = Path(r'./well tops.csv')
 
-df, las = fr.load_las(well_path, return_csv=True, curves=['GR', 'RT', 'NPHI', RHOB'])
+df, las = fr.load_las(well_path, return_csv=True, curves=['GR', 'RT', 'NPHI', 'RHOB'])
+print(df)
+```
 
-#process data
+#### 2. Display Triple-Combo and Zonation Plot
+```python
+from pathlib import Path
+from petrolib import procs
+from petrolib.plots import tripleCombo, Zonation, plotLog
+
 df = procs.process_data(df, 'GR', 'RT', 'NPHI', 'RHOB')
 
 #triple combo
@@ -68,7 +79,17 @@ tripleCombo(df, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB', ztop=3300,
 zones = Zonation(df, path=tops_path)
 zones.plotZone('DEPTH', ['GR', 'RT', 'RHOB', 'NPHI', 'CALI'], 3300, 3600, '15_9-19')
 plotLog('DEPTH', ['GR', 'RT', 'RHOB', 'NPHI', 'CALI'], 3300, 3600, '15_9-19')
+```
 
+#### 3. Pay Sumamary Computation
+```python
+from pathlib import Path
+from petrolib.workflow import Quanti
+
+tops_path = Path(r'./well tops.csv')
+
+#Create zonation object
+zones = Zonation(df, path=tops_path)
 #calling the zonation object to extra info
 ztop, zbot, zn, fm = zones()
 
@@ -86,5 +107,5 @@ ps = pp.paySummary(name='15-9_F1A')
 pp.save(file_name='Pay Summary')
 ```
 
-Tutorial repo [link](https://github.com/joshua-atolagbe/tutorials)
+#### See the  [tutorial repo](https://github.com/joshua-atolagbe/tutorials) and [official website](www.petrolibs.com) for more
 
