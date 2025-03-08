@@ -1,7 +1,7 @@
 [![Documentation Status](https://readthedocs.org/projects/petrolib/badge/?version=latest)](https://petrolib.readthedocs.io/en/latest/?badge=latest) [![PyPI version](https://badge.fury.io/py/petrolib.svg)](https://badge.fury.io/py/petrolib) [![Downloads](https://static.pepy.tech/badge/petrolib)](https://pepy.tech/project/petrolib) ![PyPI](https://img.shields.io/pypi/v/petrolib) ![PyPI - License](https://img.shields.io/pypi/l/petrolib) ![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/joshua-atolagbe/petrolib) ![GitHub contributors](https://img.shields.io/github/contributors/joshua-atolagbe/petrolib) 
 <div style="display: flex; align-items: center;">
     <img src="files/logo.png" style="height: 120px; margin-right: 20px;">
-    <h1>Petrolib: A Lightweight Package for Petrophysical Evaluation</h1>
+    <h1>A Package for Petrophysical Analysis</h1>
 </div>
 
 This is a python package designed to help users perform petrophysical analysis by estimating petrophysical parameters such as:
