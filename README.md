@@ -204,3 +204,22 @@ Results differ from 1.x because of fixes: the Archie exponent, OR-ed net flags, 
 
 #### See the  [tutorial repo](https://github.com/joshua-atolagbe/tutorials) and [official website](www.petrolibs.com) for more
 
+
+### Citation
+
+If petrolib helps your work, please cite it:
+
+> Atolagbe, J. (2026). *Petrolib: A Lightweight Package for Petrophysical Evaluation* (Version 2.0.0) [Computer software]. https://github.com/joshua-atolagbe/petrolib
+
+```bibtex
+@software{atolagbe_petrolib_2026,
+  author  = {Atolagbe, Joshua},
+  title   = {Petrolib: A Lightweight Package for Petrophysical Evaluation},
+  version = {2.0.0},
+  year    = {2026},
+  url     = {https://github.com/joshua-atolagbe/petrolib},
+  license = {MIT}
+}
+```
+
+Cite the version you used (`petrolib.__version__`). The "Cite this repository" button on GitHub gives the same reference, from `CITATION.cff`.
