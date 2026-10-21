@@ -1,8 +1,10 @@
 numpy
+pandas
 matplotlib
-contextily
 lasio
 scipy
-geopandas
 seaborn
-pip
+jinja2
+openpyxl
+sphinx
+sphinx_rtd_theme
