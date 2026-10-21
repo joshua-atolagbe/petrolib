@@ -5,12 +5,10 @@ Python module for handling data statistics
 
 from __future__ import annotations
 
-from warnings import filterwarnings
-filterwarnings('ignore')
 import seaborn as sns
 import pandas as pd
 import numpy as np
-from scipy.stats.stats import pearsonr
+from scipy.stats import pearsonr
 from itertools import cycle
 from random import choice
 from matplotlib import pyplot as plt
@@ -88,11 +86,11 @@ class Correlation:
             for j in Y:
                 if method == 'chatterjee' or method == 'nonlinear':
                     corr = self._chatterjee(self._df[i], self._df[j])
-                    df[i][j] = corr
+                    df.loc[j, i] = corr
                 elif method=='pearsonr' or method == 'linear':
                     self._df = self._df.dropna()
                     corr, _ = pearsonr(self._df[i], self._df[j])
-                    df[i][j] = corr
+                    df.loc[j, i] = corr
 
         #convert the columns to numeric from object                    
         for column in df.columns:
