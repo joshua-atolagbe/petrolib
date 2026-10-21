@@ -1,30 +1,40 @@
 [build-system]
-requires = ['matplotlib', 'pandas', 'numpy', 'lasio',
-			'scipy', 'seaborn', 'geopandas', 'contextily'
-		]
+requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[project]			
+[project]
 name = "petrolib"
-version = "1.2.6"
+dynamic = ["version"]
 authors = [
-	{name="Joshua Atolagbe", email="atolagbejoshua2@gmail.com"},	
+	{name="Joshua Atolagbe", email="atolagbejoshua2@gmail.com"},
 ]
 description = "A Python Package for Petrophysical Evaluation"
 readme = "README.md"
-requires-python = ">=3.7"
-license = {file = "LICENSE.txt"}
+requires-python = ">=3.9"
+license = {file = "LICENSE"}
 classifiers = [
 		"Programming Language :: Python :: 3",
-        	"License :: OSI Approved :: MIT License",
-        	"Operating System :: OS Independent",
-    ]
-dependencies = ['matplotlib', 'pandas', 'numpy', 'lasio',
-			'scipy', 'seaborn', 'geopandas', 'contextily']
+		"License :: OSI Approved :: MIT License",
+		"Operating System :: OS Independent",
+		"Topic :: Scientific/Engineering",
+	]
+dependencies = ['matplotlib', 'pandas', 'numpy', 'lasio', 'scipy', 'seaborn', 'jinja2', 'openpyxl']
+
+[project.optional-dependencies]
+maps = ['geopandas', 'contextily']
+dlis = ['dlisio']
+automl = ["autogluon.tabular[lightgbm,catboost,xgboost]>=1.2; python_version >= '3.10'"]
+test = ['pytest', 'dlisio', 'dliswriter']
+docs = ['sphinx', 'sphinx_rtd_theme']
+all = ['petrolib[maps,dlis,automl]']
+
+[project.scripts]
+petrolib-impute = "petrolib.automl.cli:main"
 
 [project.urls]
 "Homepage" = "https://github.com/joshua-atolagbe/petrolib"
 "Bug Tracker" = "https://github.com/joshua-atolagbe/petrolib/issues"
+"Documentation" = "https://petrolib.readthedocs.io"
 
 [tool.setuptools.packages.find]
 namespaces = true
@@ -32,3 +42,16 @@ where = ["src"]
 
 [tool.setuptools]
 include-package-data = true
+
+[tool.setuptools.package-data]
+petrolib = ["data/*.csv"]
+
+[tool.setuptools.dynamic]
+version = {attr = "petrolib.__version__"}
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = [
+	"ignore:Matplotlib is currently using agg:UserWarning",
+	"ignore:FigureCanvasAgg is non-interactive:UserWarning",
+]
