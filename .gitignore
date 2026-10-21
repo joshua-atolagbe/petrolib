@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+
+# models saved by petrolib.automl and AutoGluon
+petrolib_imputer/
+AutogluonModels/
