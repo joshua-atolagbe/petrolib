@@ -1,163 +1,20 @@
 '''
-A Python module for displaying log, lithofacies and zonation plots
+Log, combo and lithofacies track plots
 
 '''
-
 from __future__ import annotations
 import numpy as np
-import lasio
-import csv
 import pandas as pd
-import contextily as ctx
-import geopandas as gpd 
-import os
 from itertools import cycle
-from pathlib import Path
 from random import choice
 from matplotlib import pyplot as plt
-from typing import *
-from random import choice
-from matplotlib.patches import Patch 
+
+from ..mnemonics import is_resistivity, is_porosity
+import os
+from typing import List
+from matplotlib.patches import Patch
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.colors as colors
-
-
-def plotLoc(data:list[lasio.las.LASFile], shape_file:Path=None, area:str=None, figsize:tuple=(7, 7),
-             label:list=None, withmap:bool=False, return_table:bool=False) -> pd.DataFrame|None:
-    
-    '''
-    Plots location of wells
-    The longitude and latitude must be available in the LAS files
-    
-    Parameters
-    ----------
-
-    data : list
-         List of lasio.las.LASFile objects
-    
-    shape_file : str, default None
-        A .shp, .shx or .dbf file containing the shape file of the area where the well is located
-        If not supplied, `area` must be passed
-
-    area : str default, None
-        Well location. Must inlcude area from `gpd.datasets.get_path('naturalearth_lowres')`
-
-    figsize : tuple
-        Size of plot
-
-    label : list of str
-        Well name(s). Must be a list of equal length with `data`
-
-    withmap : bool default False  
-        Plots location of wells on a map if True
-        Plots the location on a scatter plot if False
-    
-    return_table : bool default False
-        Return well information such as the long, lat and name
-
-    Example
-    -------
-    >>> plotLoc(data=[las], area='Norway', label=['15_9-F-1A'], withmap=True, figsize=(30, 10))
-    
-    
-    '''
-    
-    #getting well names        
-    if label!=None:
-        assert len(label) == len(data), 'label and data not of same length'
-        well_name = label
-
-    #getting longitude and latitude from LAS
-    latitude = list()
-    longitude = list()
-    
-    try:
-
-        for idx, d in enumerate(data):
-            assert type(d) == lasio.las.LASFile, f'Expected a lasio data object'
-            # well_name.append(str(idx))
-            longitude.append(d.well.LONG.value)
-            latitude.append(d.well.LATI.value)
-
-    except:
-
-        raise AttributeError('Latitude and Longitude not in LAS file')
-
-    #save coordinate location in dataframe
-    latitude = [float(i[:3]) for i in latitude]
-    longitude = [float(i[:3]) for i in longitude]
-
-    well_df = pd.DataFrame({'WELL_NAME':well_name, 'LAT':latitude,'LONG':longitude})
-    a, b = np.array(longitude), np.array(latitude)
-    cycol = cycle('bgrcmk')
-    color = [choice(next(cycol)) for i in range(len(well_name))]
-    np.random.shuffle(color)
-    
-    #plot well coordinates on map
-    if withmap == True:
-        
-        if shape_file == None:
-            
-            assert area != None, f'Must supply area if shape_file is None'
-
-            shape = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
-                            
-            shape = shape[shape['name'] == area]  
-                
-            #plotting
-            fig, ax = plt.subplots(figsize=figsize)
-            plt.title(f'WELL LOCATION - {area}')
-        
-            shape.geometry.plot(ax=ax, figsize=figsize, color='#e3bccf', edgecolor='k', alpha=0.5, zorder=1)
-            a, b = np.array(longitude), np.array(latitude)
-            plt.plot(a, b, 'b*', markersize=15)
-            
-            for i in range(0,well_df.shape[0]):
-                plt.text(a[i], b[i], well_name[i], ha='right', size='large', color=color[i], va='bottom')
-
-            ctx.add_basemap(ax, source=ctx.providers.CartoDB.Positron)
-            
-        elif shape_file != None:
-
-            assert area == None, f'Area must be set to None'
-            
-            assert shape_file.endswidth('.shx') or shape_file.endswidth('.shp') or shape_file.endswidth('.dbf') or shape_file.endswidth('.prj'), f'Supply a valid shape file'
-
-            shape = gpd.read_file(shape_file)
-            
-            #Plotting locations            
-            fig, ax = plt.subplots(1, figsize=figsize)
-            plt.title('WELL LOCATION')
-            shape.geometry.plot(ax=ax, color='#e3bccf', edgecolor='k', alpha=0.5, zorder=1)
-            plt.plot(a, b, 'b*', markersize=15)
-
-            for i in range(0,well_df.shape[0]):
-                plt.text(a[i], b[i], well_name[i], ha='right', size='large', color=color[i], va='bottom')
-
-            ctx.add_basemap(ax, source=ctx.providers.CartoDB.Positron)
-
-    else:
-        
-        assert area == None, 'Set area to None'
-        
-        fig=plt.figure(figsize=figsize)
-        plt.title('WELL LOCATION')
-        plt.grid(which='major', linestyle=':')
-
-        plt.plot(a, b, 'b*', markersize=15)
-
-        for i in range(0,well_df.shape[0]):
-            plt.text(a[i], b[i], well_name[i], ha='right', size='large', color=color[i], va='bottom')
-
-
-    if return_table:
-
-        return well_df
-
-    else:
-
-        pass
-
 
 def plotFaciesZoneCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:str, facies:str,
                          ztop:float, zbot:float, facies_colors:list[str], facies_labels:list[str],
@@ -404,7 +261,7 @@ def plotFaciesZoneCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str,
     cycol = cycle('bgrcymk')
     color = [choice(next(cycol)) for i in range(len(ztops))]
     np.random.shuffle(color)
-    for i in ax:
+    for i in ax[:-1]:                      #not over the lithofacies track
         for t,b, c in zip(ztops, zbots, color):
             i.axhspan(t, b, color=c, alpha=.3)
         continue
@@ -429,9 +286,15 @@ def plotFaciesZoneCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str,
             facies_colors[0 : no], 'indexed'
             )
     # ax[-1].invert_yaxis()
-    cluster3=np.repeat(np.expand_dims(data[facies].values,1), 100, 1)
+    #facies may be integer codes or labels; labels are coded by their position in facies_labels
+    codes = data[facies]
+    if not pd.api.types.is_numeric_dtype(codes):
+        codes = codes.map({label: i for i, label in enumerate(facies_labels)})
+    cluster3=np.repeat(np.expand_dims(codes.to_numpy(dtype=float),1), 100, 1)
+    #draw the facies in depth, so they line up with the log tracks and the zone shading
     im=ax[-1].imshow(cluster3, interpolation='none', aspect='auto',
-                    cmap=cmap_facies,vmin=0, vmax=no)
+                    cmap=cmap_facies,vmin=0, vmax=no, extent=[0, 1, np.nanmax(depth_log), np.nanmin(depth_log)])
+    ax[-1].set_ylim(zbot, ztop)
     
     divider = make_axes_locatable(ax[-1])
     cax = divider.append_axes("right", size="20%", pad=0.05)
@@ -447,6 +310,7 @@ def plotFaciesZoneCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str,
         ax[i].set_xticklabels([])
     plt.tight_layout(h_pad=1.2)
     fig.subplots_adjust(wspace = 0.0)
+
 
 def tripleCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:str, ztop:float, zbot:float, 
                 res_thres:float=10.0, fill:str=None, palette_op:str=None,
@@ -655,186 +519,6 @@ def tripleCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:st
     plt.show()
 
 
-class Zonation:
-
-    r'''
-    This is a zonation class that extract zone/reservoir information from the file.
-    This information may include top, bottom and zone/reservoir name. This information
-    can be accessed when an instance of `Zonation object` is called. 
-
-    Attributes
-    ----------
-    df : pd.DataFrame
-        Dataframe of well data
-
-    zones : list of dictionaries, default None
-        A optional attribute containing list of dictionaries that holds zone information
-        If None, `path` must be supplied
-
-    path : Path or str, default None
-        A csv file containing reservoir info. 
-        To be able to use this, the information in the file should be entered in the following format
-            top, bottom, zonename
-            100, 200, RES_A
-            210, 220, RES_B
-        If None, `zone` must be passed
-
-    Example
-    -------
-    >>> from petrolib.plots import Zonation
-    >>> zones = Zonation(df, path='./well tops.csv')
-    >>> zones = Zonation(df, zones = [{'RES_A':[3000, 3100]}, {'RES_B':[3300, 3400]}])
-    
-    >>> #get reservoir information by calling the Zonation object
-    >>> #ztop = top ; zbot = base; zn = zonename ; fm = formation mids to place zone name in plot
-    >>> ztop, zbot, zn, fm = zones()
-    
-    '''
-    
-    def __init__(self, df:pd.DataFrame, zones:List[Dict[str, List[float]]]=None, path:Path=None):
-
-        self._df = df 
-        self._zones = zones
-        self._path = path
-        self._ztop = []
-        self._zbot = []
-        self._zonename = []
-        
-        if self._path != None and self._zones==None:
-            with open(self._path, mode='r') as tops:
-                items = list(csv.DictReader(tops)) #reads csv content as list of dictionaries
-  
-            for item in items:
-                self._ztop.append(float(item.get('top')))
-                self._zbot.append(float(item.get('bottom')))
-                self._zonename.append(str(item.get('zonename')))
-            
-            
-        elif self._path==None and self._zones!=None:
-            for zone in self._zones:
-                self._ztop.append(float(list(zone.values())[0][0]))
-                self._zbot.append(float(list(zone.values())[0][1]))
-                self._zonename.append(list(zone.keys())[0])
-        
-#         elif path!=None and zones!=None:
-#             pass
-        
-        self._fm_mid = []
-            
-        for t, b in zip(self._ztop, self._zbot):
-            self._fm_mid.append((t+(b-t)/2))
-
-    def __call__(self):
-
-        '''
-        When the zonation object is called, this method is returned 
-
-        Returns
-        -------
-        In the following sequence, Tops, Bottoms, Zone name and Formation mids
-
-        Example
-        -------
-        >>> ztop, zbot, zn, fm = zones()
-        
-        '''
-        return self._ztop, self._zbot, self._zonename, self._fm_mid
-
-    def plotZone(self, depth:str, logs:List[str], top:float, bottom:float, title:str='Log Plot', figsize:tuple=(8, 12)):
-
-        r'''
-        Plots log curves with zonation track.
-
-        Parameters
-        ----------
-
-        depth : str
-            Depth column
-
-        logs : list of str
-            A list of logs curves to include in plot
-        
-        top : float
-            Minimum depth to zoom on
-
-        bottom : float
-            Maximum depth to zoom on
-
-        title : str
-            Plot title
-
-        figsize : tuple
-            Size of plot
-
-        Example
-        -------
-        >>> Zonation.plotZone('DEPTH', ['GR', 'RT', 'RHOB', 'NPHI', 'CALI'], 3300, 3600, 'Volve')
-        
-        '''
-    
-        # create the subplots; ncols equals the number of logs
-        fig, ax = plt.subplots(nrows=1, ncols=len(logs)+1, figsize=figsize, sharey=True)
-        fig.suptitle(f'{title}', size=15, y=1.)
-
-        cycol = cycle('bgrcmyk')
-        color = [choice(next(cycol)) for i in range(len(logs))]
-        np.random.shuffle(color)
-
-        for i in range(len(logs)):
-            
-            if logs[i] == 'RT' or logs[i] == 'ILD':
-                # for resistivity, semilog plot
-                ax[i].semilogx(self._df[logs[i]], self._df[depth], color=color[i], linewidth=1.)
-            else:
-                # for non-resistivity, normal plot
-                ax[i].plot(self._df[logs[i]], self._df[depth], color=color[i], linewidth=1.)
-
-            if logs[i] == 'NPHI':
-                ax[i].invert_xaxis()
-
-            ax[i].set_title(logs[i], pad=15)
-            ax[i].minorticks_on()
-            ax[i].set_ylim(top, bottom); ax[i].invert_yaxis()
-            ax[i].grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
-            ax[i].grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-            ax[i].xaxis.label.set_color(color[i])
-            ax[i].tick_params(axis='x', colors=color[i])
-            ax[i].spines['top'].set_edgecolor(color[i])
-            ax[i].spines["top"].set_position(("axes", 1.01)); ax[i].xaxis.set_ticks_position("top")
-            ax[i].xaxis.set_label_position("top")
-            ax[i].hlines([t for t in self._ztop], xmin=self._df[logs[i]].min(), xmax=self._df[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
-            ax[i].hlines([b for b in self._zbot], xmin=self._df[logs[i]].min(), xmax=self._df[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
-        
-        ax[0].set_ylabel('DEPTH (m/ft)')
-
-        #formation subplot
-        ax[-1].set_ylim(top, bottom); ax[-1].invert_yaxis()
-        ax[-1].set_title('Zones', pad=45)
-        ax[-1].set_xticks([])
-        # ax[-1].set_yticklabels([])
-        ax[-1].set_xticklabels([])
-        ax[-1].hlines([t for t in self._ztop], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
-        ax[-1].hlines([b for b in self._zbot], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
-        formations = ax[-1]
-
-        #delineating zones
-        colors = [choice(next(cycol)) for i in range(len(self._zonename))]
-        np.random.shuffle(colors)
-        for i in ax:
-            for t,b, c in zip(self._ztop, self._zbot, colors):
-                i.axhspan(t, b, color=c, alpha=0.3)
-
-        #adding zone names
-        for label, fm_mids in zip(self._zonename, self._fm_mid):
-            formations.text(0.5, fm_mids, label, rotation=0,
-                    verticalalignment='center', fontweight='bold',
-                    fontsize='large')
-    #    
-        plt.tight_layout(h_pad=1)
-        fig.subplots_adjust(wspace = 0.0)
-        plt.show()
-
-
 def plotLog(df:pd.DataFrame, depth:str, logs:List[str], top:float, bottom:float, title:str='Log Plot', figsize:tuple=(8, 12)):
 
         r'''
@@ -882,14 +566,14 @@ def plotLog(df:pd.DataFrame, depth:str, logs:List[str], top:float, bottom:float,
         if len(logs) > 1:
             for i in range(len(logs)):
                 np.random.shuffle(color)
-                if logs[i] == 'RT' or logs[i] == 'ILD':
+                if is_resistivity(logs[i]):
                     # for resistivity, semilog plot
                     ax[i].semilogx(df[logs[i]], df[depth], color=color[i], linewidth=1.)
                 else:
                     # for non-resistivity, normal plot
                     ax[i].plot(df[logs[i]], df[depth], color=color[i], linewidth=1.)
 
-                if logs[i] == 'NPHI' or logs[i] == 'PHIE':
+                if is_porosity(logs[i]):
                     ax[i].invert_xaxis()
 
                 ax[i].set_title(logs[i], pad=15)
@@ -909,14 +593,14 @@ def plotLog(df:pd.DataFrame, depth:str, logs:List[str], top:float, bottom:float,
             
             for i in logs:
                 np.random.shuffle(color)
-                if i == 'RT' or i == 'ILD':
+                if is_resistivity(i):
                     # for resistivity, semilog plot
                     plt.semilogx(df[i], df[depth], color=next(cycol), linewidth=1.)
                 else:
                         # for non-resistivity, normal plot
                     plt.plot(df[i], df[depth], color=next(cycol), linewidth=1.)
 
-                if i == 'NPHI' or i == 'PHIE':
+                if is_porosity(i):
                     plt.xlim(df[i].max(), df[i].min())
                     
                 plt.title(i, pad=15)
@@ -933,7 +617,6 @@ def plotLog(df:pd.DataFrame, depth:str, logs:List[str], top:float, bottom:float,
         plt.show()
 
 
-    
 def plotZoneCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:str, ztop:float, zbot:float,
                    ztops:List[float], zbots:List[float], zonename:List[str], limit:str, res_thres:float=10., 
                    palette_op:str=None, fill:str=None, title:str='Log plot', figsize:tuple=(10, 20)) -> None:
@@ -1224,7 +907,7 @@ def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom
     df = df.copy()
     # file_dir, file_name = os.path.split(__file__)
     
-    df_litho = pd.read_csv(os.path.join(os.path.dirname(__file__), 'data', 'litho_info.csv'))
+    df_litho = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'litho_info.csv'))
     
     # create the subplots; ncols equals the number of logs
     if facies is None:
@@ -1276,7 +959,7 @@ def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom
             for ii, log_name in enumerate(j):
                 axes = ax[i]  # Initialize axes for each log
                 
-                if log_name == 'RT' or log_name == 'ILD':
+                if is_resistivity(log_name):
                     # For resistivity, semilog plot
                     axes.semilogx(df[log_name], df[depth], color=color[ii], linewidth=1.)
                     axes.set_xticklabels([])
@@ -1322,7 +1005,7 @@ def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom
                     axes.set_xlabel(logs[i][_])
                     axes.set_ylim(top, bottom)
 
-                    if logs[i][_] == 'NPHI' or logs[i][_] == 'PHIE':
+                    if is_porosity(logs[i][_]):
                         axes.set_xlim(df[logs[i][_]].max(), df[logs[i][_]].min())
                         axes.set_xticks(list(np.linspace(df[logs[i][_]].min(), df[logs[i][_]].max(), num=4)))
                     else:
@@ -1347,7 +1030,7 @@ def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom
             np.random.shuffle(color[::-1])
             log_name = j
             axes = ax[i]
-            if log_name == 'RT' or log_name == 'ILD':
+            if is_resistivity(log_name):
                 # For resistivity, semilog plot
                 axes.semilogx(df[log_name], df[depth], color=color[i], linewidth=1.)
                 
@@ -1355,7 +1038,7 @@ def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom
                 # For non-resistivity, normal plot
                 axes.plot(df[log_name], df[depth], color=color[i], linewidth=1.)
 
-            if log_name == 'NPHI' or log_name == 'PHIE':
+            if is_porosity(log_name):
                 axes.invert_xaxis()
 
             axes.set_title(log_name, pad=15)
@@ -1473,7 +1156,7 @@ def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom
             for ii, log_name in enumerate(j):
                 axes = ax[i]  # Initialize axes for each log
                 
-                if log_name == 'RT' or log_name == 'ILD':
+                if is_resistivity(log_name):
                     # For resistivity, semilog plot
                     axes.semilogx(df[log_name], df[depth], color=color[ii], linewidth=1.)
                     axes.set_xticklabels([])
@@ -1518,7 +1201,7 @@ def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom
                     axes.set_xlabel(logs[i][_])
                     axes.set_ylim(top, bottom)
 
-                    if logs[i][_] == 'NPHI' or logs[i][_] == 'PHIE':
+                    if is_porosity(logs[i][_]):
                         axes.set_xlim(df[logs[i][_]].max(), df[logs[i][_]].min())
                         axes.set_xticks(list(np.linspace(df[logs[i][_]].min(), df[logs[i][_]].max(), num=4)))
                     else:
@@ -1543,7 +1226,7 @@ def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom
             np.random.shuffle(color[::-1])
             log_name = j
             axes = ax[i]
-            if log_name == 'RT' or log_name == 'ILD':
+            if is_resistivity(log_name):
                 # For resistivity, semilog plot
                 axes.semilogx(df[log_name], df[depth], color=color[i], linewidth=1.)
                 
@@ -1551,7 +1234,7 @@ def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom
                 # For non-resistivity, normal plot
                 axes.plot(df[log_name], df[depth], color=color[i], linewidth=1.)
 
-            if log_name == 'NPHI' or log_name == 'PHIE':
+            if is_porosity(log_name):
                 axes.invert_xaxis()
 
             axes.set_title(log_name, pad=15)
