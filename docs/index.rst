@@ -29,7 +29,7 @@ To import the package, use:
    import petrolib as pl
    print(pl.__version__)
 
-   >>> '1.2.6'
+   >>> '2.0.0'
 
 Contents
 ========
