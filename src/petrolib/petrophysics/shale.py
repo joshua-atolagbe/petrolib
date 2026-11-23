@@ -34,7 +34,7 @@ def gamma_ray_index(gr, gr_sand:float, gr_shale:float):
     if gr_shale > gr_sand:
         igr = np.clip((g - gr_sand) / (gr_shale - gr_sand), 0, 1)
     else:
-        igr = np.full(g.shape, .5)
+        igr = np.where(np.isnan(g), np.nan, .5) #keep missing GR as NaN
     return like(igr, gr)
 
 
@@ -62,7 +62,8 @@ def vshale(igr, method:str='linear'):
     >>> vsh = vshale(gamma_ray_index(df['GR'], 20, 120), method='clavier')
     '''
 
-    i = as_array(igr)
+    #the transforms are defined on [0, 1]; outside it clavier gives NaN and stieber can drop to 0
+    i = np.clip(as_array(igr), 0, 1)
     if method == 'linear':
         v = i
     elif method == 'clavier':
