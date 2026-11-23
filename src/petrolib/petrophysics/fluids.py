@@ -3,6 +3,8 @@ Formation temperature and water resistivity
 
 '''
 
+import numpy as np
+
 from ._utils import as_array, like
 
 #temperature offsets of Arps' formula
@@ -93,7 +95,8 @@ def rw_from_salinity(ppm, temp:float=75., unit:str='F'):
 
     rw75 = .0123 + 3647.5 / as_array(ppm)**.955
     t75 = 75. if unit.upper() == 'F' else (75. - 32) / 1.8
-    return like(arps(rw75, t75, temp, unit), ppm)
+    #plain array into like, so a Series `ppm` and `temp` are matched by position, not by index label
+    return like(as_array(arps(rw75, t75, temp, unit)), ppm, temp)
 
 
 def rwa(rt, phi, a:float=1., m:float=2.):
@@ -121,16 +124,24 @@ def rwa(rt, phi, a:float=1., m:float=2.):
     return like(as_array(phi)**m * as_array(rt) / a, rt, phi)
 
 
-def rw_from_sp(ssp, rmf, temp:float, unit:str='F'):
+def rw_from_sp(ssp, rmf, temp:float, unit:str='F', rwe_to_rw:bool=True):
 
     r'''
     Formation water resistivity from the static SP of a clean, thick water sand
 
         K = 61 + 0.133 T (degF)  or  65 + 0.24 T (degC)
-        Rwe = Rmfe 10^(SSP / K),  with Rmfe = 0.85 Rmf and Rw = Rwe
+        Rwe = Rmfe 10^(SSP / K),  with Rmfe = 0.85 Rmf
 
-    The two simplifications hold for NaCl waters and mud filtrates with Rmf above about
-    0.1 ohm-m at 75 degF; otherwise convert Rmf and Rwe with the SP-2 chart
+    Rwe is then converted to Rw for NaCl waters with the Bateman and Konen (1977) relation, which
+    reproduces Schlumberger chart SP-2. Rwe is taken to 75 degF with the Arps relation, and where
+    Rwe at 75 degF is 0.12 ohm-m or less (saline waters)
+
+        Rw(75 degF) = (77 Rwe + 5) / (146 - 337 Rwe)
+
+    and the result is taken back to formation temperature. Fresher waters are returned as Rwe;
+    for them the SP-2 curves depend on salts other than NaCl. The SP-1 and SP-2 examples
+    (SSP -100 mV, Rmf 0.33 ohm-m at 250 degF) give Rwe 0.024 and Rw 0.029; the charts read 0.025 and 0.03.
+    Rmfe = 0.85 Rmf holds for NaCl mud filtrates with Rmf above about 0.1 ohm-m at 75 degF
 
     Parameters
     ----------
@@ -146,10 +157,20 @@ def rw_from_sp(ssp, rmf, temp:float, unit:str='F'):
     unit : str default 'F'
         Unit of `temp`: 'F' or 'C'
 
+    rwe_to_rw : bool default True
+        Convert Rwe to Rw as above; False returns Rwe
+
     Example
     -------
     >>> rw = rw_from_sp(-90, rmf=arps(.4, 75, 160), temp=160)
     '''
 
     k = 61. + .133 * temp if unit.upper() == 'F' else 65. + .24 * temp
-    return like(.85 * as_array(rmf) * 10**(as_array(ssp) / k), ssp)
+    rwe = .85 * as_array(rmf) * 10**(as_array(ssp) / k)
+    if not rwe_to_rw:
+        return like(rwe, ssp, rmf)
+    to_75 = (temp + 6.77 if unit.upper() == 'F' else temp * 1.8 + 32 + 6.77) / (75 + 6.77)
+    rwe75 = rwe * to_75
+    with np.errstate(divide='ignore', invalid='ignore'):
+        rw75 = np.where(rwe75 <= .12, (77 * rwe75 + 5) / (146 - 337 * rwe75), rwe75)
+    return like(rw75 / to_75, ssp, rmf)
