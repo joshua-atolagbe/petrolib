@@ -3,6 +3,7 @@ Lithofacies modelling from logs
 
 '''
 from __future__ import annotations
+import numpy as np
 import pandas as pd
 
 
@@ -40,8 +41,10 @@ def model_facies(df:pd.DataFrame, gr:str, env:str='SS') -> pd.DataFrame:
 
             if i < 75.0:
                 litho.append('Sandstone')
-            else:
+            elif i >= 75.0:
                 litho.append('Shale')
+            else:                                 #missing GR
+                litho.append(np.nan)
     
     elif env == 'CO':
 
@@ -61,6 +64,9 @@ def model_facies(df:pd.DataFrame, gr:str, env:str='SS') -> pd.DataFrame:
 
             elif i > 75.:
                 litho.append('Shale')
+
+            else:                                 #missing GR or below 8 API: unclassified
+                litho.append(np.nan)
 
     df['litho'] = litho
 
