@@ -54,8 +54,8 @@ def monte_carlo_archie(phie, rt, rw=.03, a=1., m=2., n=2., n_iter:int=1000, seed
 
     rng = np.random.default_rng(seed)
     p = {k: _draw(v, n_iter, rng) for k, v in dict(rw=rw, a=a, m=m, n=n).items()}
-    phi, r = as_array(phie), as_array(rt)
+    phi, r = np.atleast_1d(as_array(phie)), np.atleast_1d(as_array(rt))     #floats give a one-row frame
     sw = np.stack([as_array(archie(phi, r, p['rw'][i], p['a'][i], p['m'][i], p['n'][i])) for i in range(n_iter)])
     q = np.nanpercentile(sw, [10, 50, 90], axis=0)
-    index = phie.index if isinstance(phie, pd.Series) else None
+    index = next((v.index for v in (phie, rt) if isinstance(v, pd.Series)), None)
     return pd.DataFrame({'SW_P10': q[0], 'SW_P50': q[1], 'SW_P90': q[2]}, index=index)
