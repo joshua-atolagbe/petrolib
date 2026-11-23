@@ -74,7 +74,9 @@ def load_table(file:Path|str, curves:list[str]=None, delimiter:str=None, header:
     if file.endswith('.csv'):
         
         # last_four = file[-4:].lower()
-        df = pd.read_csv(file, delimiter=delimiter, header=header, skiprows=skiprows)
+        #sniffing the delimiter needs the python parser
+        df = pd.read_csv(file, delimiter=delimiter, header=header, skiprows=skiprows,
+                         engine='python' if delimiter is None else None)
 
         if curves != None:
 
