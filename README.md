@@ -1,5 +1,5 @@
 [![Documentation Status](https://readthedocs.org/projects/petrolib/badge/?version=latest)](https://petrolib.readthedocs.io/en/latest/?badge=latest) [![PyPI version](https://badge.fury.io/py/petrolib.svg)](https://badge.fury.io/py/petrolib) [![Downloads](https://static.pepy.tech/badge/petrolib)](https://pepy.tech/project/petrolib) ![PyPI](https://img.shields.io/pypi/v/petrolib) ![PyPI - License](https://img.shields.io/pypi/l/petrolib) ![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/joshua-atolagbe/petrolib) ![GitHub contributors](https://img.shields.io/github/contributors/joshua-atolagbe/petrolib) 
-# <img src="files/logo.png" width="100" height="100" alt="Logo"> Petrolib: A Lightweight Package for Petrophysical Evaluation 
+# <img src="https://raw.githubusercontent.com/joshua-atolagbe/petrolib/main/files/logo.png" width="100" height="100" alt="Logo"> Petrolib: A Lightweight Package for Petrophysical Evaluation 
 
 This is a python package designed to help users perform petrophysical analysis, from loading well data to net pay, rock typing and in-place volumes:
 
@@ -202,7 +202,7 @@ The 1.x modules still import, with a deprecation warning, and will be removed in
 
 Results differ from 1.x because of fixes: the Archie exponent, OR-ed net flags, swapped cutoffs in the pay summary, user parameters dropped between steps, GR endpoints (now P5/P95), net thickness with data gaps, the permeability equation (now Timur) and the sonic matrix default (now 55.5 us/ft, sandstone).
 
-#### See the  [tutorial repo](https://github.com/joshua-atolagbe/tutorials) and [official website](www.petrolibs.com) for more
+#### See the  [tutorial repo](https://github.com/joshua-atolagbe/tutorials) and [official website](https://www.petrolibs.com) for more
 
 
 ### Citation
