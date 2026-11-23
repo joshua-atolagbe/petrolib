@@ -7,12 +7,16 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
+from . import style as st
+from .style import themed
 from .petrophysics import _axes, _scatter, _style
+from .tracks import LogLayout, Curve, data_scale
 from ..petrophysics.geomechanics import to_gradient
 
 
+@themed
 def mechanicalPlot(df:pd.DataFrame, depth:str='DEPTH', curves:dict=None, top:float=None, bottom:float=None,
-                   title:str='Mechanical Properties', figsize:tuple=(10, 12)):
+                   title:str='Mechanical properties', figsize:tuple=None):
 
     r'''
     Tracks of mechanical properties against depth
@@ -34,7 +38,7 @@ def mechanicalPlot(df:pd.DataFrame, depth:str='DEPTH', curves:dict=None, top:flo
 
     Returns
     -------
-    Array of Axes
+    Array of the track Axes
 
     Example
     -------
@@ -43,31 +47,27 @@ def mechanicalPlot(df:pd.DataFrame, depth:str='DEPTH', curves:dict=None, top:flo
     >>> mechanicalPlot(mech)
     '''
 
-    names = {'E': "Young's modulus (GPa)", 'PR': "Poisson's ratio", 'BI': 'Brittleness (%)', 'UCS': 'UCS (MPa)',
-             'G': 'Shear modulus (GPa)', 'K': 'Bulk modulus (GPa)'}
+    names = {'E': ("Young's modulus", 'GPa'), 'PR': ("Poisson's ratio", ''), 'BI': ('Brittleness', '%'),
+             'UCS': ('UCS', 'MPa'), 'G': ('Shear modulus', 'GPa'), 'K': ('Bulk modulus', 'GPa')}
     if curves is None:
         curves = [c for c in ('E', 'PR', 'BI', 'UCS') if c in df.columns]
     if not isinstance(curves, dict):
-        curves = {c: names.get(c, c) for c in curves}
-    colors = plt.get_cmap('tab10').colors
-    fig, axes = plt.subplots(1, len(curves), figsize=figsize, sharey=True)
-    axes = np.atleast_1d(axes)
-    for ax, (col, label), color in zip(axes, curves.items(), colors):
-        ax.plot(df[col], df[depth], color=color, linewidth=.8)
-        ax.set_title(label, fontsize=11)
-        ax.grid(which='major', linestyle=':', linewidth=.9, color='grey')
-        ax.xaxis.set_ticks_position('top')
+        curves = {c: names.get(c, (c, ''))[0] for c in curves}
     lo = df[depth].min() if top is None else top
     hi = df[depth].max() if bottom is None else bottom
-    axes[0].set_ylim(hi, lo)
-    axes[0].set_ylabel('Depth')
-    fig.suptitle(title, size=15)
-    fig.tight_layout()
-    return axes
+    data = df[df[depth].between(min(lo, hi), max(lo, hi))]
+    layout = LogLayout(lo, hi, [1] * len(curves), 1, title, f'{min(lo, hi):g}–{max(lo, hi):g}', figsize,
+                       'Depth' if str(depth).upper() == 'DEPTH' else depth)
+    for i, ((col, label), color) in enumerate(zip(curves.items(), st.categorical(len(curves)))):
+        layout.curves(i, data, depth, [Curve(col, label=label, unit=names.get(col, ('', ''))[1], color=color,
+                                             scale=data_scale(data[col]), lw=.9)])
+    layout.finish()
+    return np.array(layout.tracks)
 
 
+@themed
 def pressurePlot(depth, hydrostatic=None, pore=None, overburden=None, fracture=None, mud_weight=None,
-                 gradient:bool=False, depth_unit:str='m', title:str='Pressure', figsize:tuple=(7, 10), ax=None):
+                 gradient:bool=False, depth_unit:str='m', title:str='Pressure', figsize:tuple=(5.5, 8), ax=None):
 
     r'''
     Hydrostatic, pore, overburden and fracture pressure (MPa) against depth, as pressures or as
@@ -95,29 +95,31 @@ def pressurePlot(depth, hydrostatic=None, pore=None, overburden=None, fracture=N
 
     ax = _axes(ax, figsize)
     z = np.asarray(depth, dtype=float)
-    lines = [(hydrostatic, 'Hydrostatic', 'tab:blue', '--'), (pore, 'Pore pressure', 'tab:red', '-'),
-             (fracture, 'Fracture pressure', 'tab:green', '-'), (overburden, 'Overburden', 'black', '-')]
+    lines = [(hydrostatic, 'Hydrostatic', st.SERIES[0], (0, (4, 2))), (pore, 'Pore pressure', st.SERIES[7], '-'),
+             (fracture, 'Fracture pressure', st.SERIES[5], '-'), (overburden, 'Overburden', st.INK, '-')]
+    if mud_weight is not None:
+        mw = np.broadcast_to(np.asarray(mud_weight, dtype=float), z.shape)
+        if not gradient:
+            from ..petrophysics.geomechanics import hydrostatic_pressure
+            mw = np.asarray(hydrostatic_pressure(z, 1., depth_unit=depth_unit)) * mw
+        lines.append((mw, 'Mud weight', st.SERIES[1], '-'))
     for values, label, color, style in lines:
         if values is None:
             continue
-        v = to_gradient(values, z, 'g/cc', depth_unit) if gradient else np.asarray(values, dtype=float)
-        ax.plot(v, z, style, color=color, linewidth=1.2, label=label)
-    if mud_weight is not None:
-        mw = np.broadcast_to(np.asarray(mud_weight, dtype=float), z.shape)
-        if gradient:
-            ax.plot(mw, z, '-', color='tab:orange', linewidth=1.5, label='Mud weight')
-        else:
-            from ..petrophysics.geomechanics import hydrostatic_pressure
-            ax.plot(np.asarray(hydrostatic_pressure(z, 1., depth_unit=depth_unit)) * mw, z, '-', color='tab:orange',
-                    linewidth=1.5, label='Mud weight')
+        v = np.asarray(to_gradient(values, z, 'g/cc', depth_unit) if gradient and label != 'Mud weight' else values,
+                       dtype=float)
+        ax.plot(v, z, ls=style, color=color, lw=1.4, label=label, zorder=3)
     ax.set_ylim(np.nanmax(z), np.nanmin(z))
-    ax.legend(loc='best', fontsize='small')
-    _style(ax, title, 'Gradient (g/cc)' if gradient else 'Pressure (MPa)', f'Depth ({depth_unit})')
+    st.legend(ax, loc='best')
+    _style(ax, title, 'Equivalent gradient (g/cm³)' if gradient else 'Pressure (MPa)', f'Depth ({depth_unit})')
+    ax.xaxis.set_ticks_position('top'); ax.xaxis.set_label_position('top')
+    ax.spines['top'].set_visible(True); ax.spines['bottom'].set_visible(False)
     return ax
 
 
-def rockPhysicsPlot(df:pd.DataFrame, ai:str='AI', vpvs:str='VPVS', hue:str=None, cmap:str='viridis',
-                    title:str='Rock Physics Cross Plot', figsize:tuple=(8, 6), ax=None):
+@themed
+def rockPhysicsPlot(df:pd.DataFrame, ai:str='AI', vpvs:str='VPVS', hue:str=None, cmap:str=None,
+                    title:str='Rock physics cross plot', figsize:tuple=(7, 5.5), ax=None):
 
     r'''
     Vp/Vs against acoustic impedance. Gas sands plot at low Vp/Vs and low impedance, shales at high Vp/Vs
@@ -129,5 +131,5 @@ def rockPhysicsPlot(df:pd.DataFrame, ai:str='AI', vpvs:str='VPVS', hue:str=None,
 
     ax = _axes(ax, figsize)
     _scatter(ax, df, df[ai], df[vpvs], hue, cmap)
-    _style(ax, title, 'Acoustic impedance (m/s g/cc)', 'Vp/Vs')
+    _style(ax, title, 'Acoustic impedance (m/s · g/cm³)', 'Vp/Vs', f'{int(df[[ai, vpvs]].notna().all(axis=1).sum()):,} samples')
     return ax
