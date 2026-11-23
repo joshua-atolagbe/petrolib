@@ -3,16 +3,11 @@ Well tops and zonation
 
 '''
 from __future__ import annotations
-import numpy as np
 import pandas as pd
-from itertools import cycle
-from random import choice
-from matplotlib import pyplot as plt
 import csv
 from pathlib import Path
 from typing import Dict, List
 
-from ..mnemonics import is_resistivity, is_porosity
 
 class Zonation:
 
@@ -143,7 +138,7 @@ class Zonation:
         '''
         return self._ztop, self._zbot, self._zonename, self._fm_mid
 
-    def plotZone(self, depth:str, logs:List[str], top:float, bottom:float, title:str='Log Plot', figsize:tuple=(8, 12)):
+    def plotZone(self, depth:str, logs:List[str], top:float, bottom:float, title:str='Log Plot', figsize:tuple=None):
 
         r'''
         Plots log curves with zonation track.
@@ -175,64 +170,10 @@ class Zonation:
         
         '''
     
-        # create the subplots; ncols equals the number of logs
-        fig, ax = plt.subplots(nrows=1, ncols=len(logs)+1, figsize=figsize, sharey=True)
-        fig.suptitle(f'{title}', size=15, y=1.)
-
-        cycol = cycle('bgrcmyk')
-        color = [choice(next(cycol)) for i in range(len(logs))]
-        np.random.shuffle(color)
-
-        for i in range(len(logs)):
-            
-            if is_resistivity(logs[i]):
-                # for resistivity, semilog plot
-                ax[i].semilogx(self._df[logs[i]], self._df[depth], color=color[i], linewidth=1.)
-            else:
-                # for non-resistivity, normal plot
-                ax[i].plot(self._df[logs[i]], self._df[depth], color=color[i], linewidth=1.)
-
-            if is_porosity(logs[i]):
-                ax[i].invert_xaxis()
-
-            ax[i].set_title(logs[i], pad=15)
-            ax[i].minorticks_on()
-            ax[i].set_ylim(top, bottom); ax[i].invert_yaxis()
-            ax[i].grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
-            ax[i].grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-            ax[i].xaxis.label.set_color(color[i])
-            ax[i].tick_params(axis='x', colors=color[i])
-            ax[i].spines['top'].set_edgecolor(color[i])
-            ax[i].spines["top"].set_position(("axes", 1.01)); ax[i].xaxis.set_ticks_position("top")
-            ax[i].xaxis.set_label_position("top")
-            ax[i].hlines([t for t in self._ztop], xmin=self._df[logs[i]].min(), xmax=self._df[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
-            ax[i].hlines([b for b in self._zbot], xmin=self._df[logs[i]].min(), xmax=self._df[logs[i]].max(), colors='black', linestyles='solid', linewidth=1.)
-        
-        ax[0].set_ylabel('DEPTH (m/ft)')
-
-        #formation subplot
-        ax[-1].set_ylim(top, bottom); ax[-1].invert_yaxis()
-        ax[-1].set_title('Zones', pad=45)
-        ax[-1].set_xticks([])
-        # ax[-1].set_yticklabels([])
-        ax[-1].set_xticklabels([])
-        ax[-1].hlines([t for t in self._ztop], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
-        ax[-1].hlines([b for b in self._zbot], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
-        formations = ax[-1]
-
-        #delineating zones
-        colors = [choice(next(cycol)) for i in range(len(self._zonename))]
-        np.random.shuffle(colors)
-        for i in ax:
-            for t,b, c in zip(self._ztop, self._zbot, colors):
-                i.axhspan(t, b, color=c, alpha=0.3)
-
-        #adding zone names
-        for label, fm_mids in zip(self._zonename, self._fm_mid):
-            formations.text(0.5, fm_mids, label, rotation=0,
-                    verticalalignment='center', fontweight='bold',
-                    fontsize='large')
-    #    
-        plt.tight_layout(h_pad=1)
-        fig.subplots_adjust(wspace = 0.0)
-        plt.show()
+        from ..plots.logs import _log_tracks, _window
+        from ..plots import style
+        with style.theme():
+            layout = _log_tracks(_window(self._df, depth, top, bottom), depth, list(logs), top, bottom, title, figsize,
+                                 extra=1)
+            layout.zones(len(logs), list(self._ztop), list(self._zbot), list(self._zonename))
+            return layout.finish()
