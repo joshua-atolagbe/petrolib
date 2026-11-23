@@ -1,1258 +1,460 @@
 '''
 Log, combo and lithofacies track plots
 
+Every track has a header box with the curve name, unit and the scale at each edge. Curve types are
+recognised from their mnemonics (petrolib.mnemonics), which set the colour and the default scale:
+gamma ray 0-150 gAPI, resistivity 0.2-2000 ohm.m on a log scale, and neutron and density on
+limestone-compatible scales (0.45 to -0.15 v/v and 1.95 to 2.95 g/cm3), so that the two curves
+overlie in clean water-bearing limestone and cross over in gas.
 '''
 from __future__ import annotations
-import numpy as np
-import pandas as pd
-from itertools import cycle
-from random import choice
-from matplotlib import pyplot as plt
-
-from ..mnemonics import is_resistivity, is_porosity
 import os
 from typing import List
-from matplotlib.patches import Patch
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-import matplotlib.colors as colors
 
+import numpy as np
+import pandas as pd
+from matplotlib import pyplot as plt
+
+from ..mnemonics import log_kind
+from . import style as st
+from .style import themed
+from .tracks import LogLayout, Curve
+
+
+def _window(df:pd.DataFrame, depth:str, top:float, bottom:float) -> pd.DataFrame:
+    #samples in the plotted interval, with a margin so curves reach the track edges
+    lo, hi = min(top, bottom), max(top, bottom)
+    pad = .02 * (hi - lo)
+    return df[df[depth].between(lo - pad, hi + pad)]
+
+
+def _depth_label(depth:str) -> str:
+    return 'Depth' if str(depth).upper() in ('DEPTH', 'DEPT') else str(depth)
+
+
+def _gr_fill(limit:str, palette_op:str) -> dict:
+    #sand-shale shading about 75 gAPI, or a colour ramp from one edge when a side or palette is given
+    if limit is None and palette_op is None:
+        return {'fill': 'sand', 'baseline': 75.}
+    return {'fill': limit or 'left', 'cmap': palette_op}
+
+
+def _crossover(fill:str) -> str:
+    #1.x names: 'left' shows porous (crossover) zones, 'right' non-porous (separation), 'both' both
+    return {'left': 'gas', 'right': 'shale', 'both': 'both'}.get(fill)
+
+
+def _combo(layout:LogLayout, df:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:str, res_thres:float,
+           fill:str, palette_op:str, limit:str):
+    #gamma ray, resistivity and neutron-density tracks 0-2
+    layout.curves(0, df, depth, [Curve(gr, color=st.CURVE_COLORS['GR'])], **_gr_fill(limit, palette_op))
+    layout.curves(1, df, depth, [Curve(res, color=st.CURVE_COLORS['RT'], log=True,
+                                       scale=None if log_kind(res) else (.2, 2000.))], fill='above', threshold=res_thres)
+    #neutron in percent or density in kg/m3 get the same scales in their units
+    pct = df[nphi].median() > 1.5
+    kgm3 = df[rhob].median() > 100
+    layout.curves(2, df, depth, [Curve(nphi, color=st.CURVE_COLORS['NPHI'], scale=(45, -15) if pct else (.45, -.15),
+                                       unit='%' if pct else 'v/v', ls=(0, (4, 1.5))),
+                                 Curve(rhob, color=st.CURVE_COLORS['RHOB'], scale=(1950, 2950) if kgm3 else (1.95, 2.95),
+                                       unit='kg/m3' if kgm3 else 'g/cm3')],
+                  crossover=_crossover(fill))
+
+
+def _combo_rows(fill:str, limit:str, palette_op:str) -> int:
+    #header rows the combo tracks need: curves plus the fills shown in the header
+    nd = 2 + {'gas': 1, 'shale': 1, 'both': 2}.get(_crossover(fill), 0)
+    gr = 2 if limit is None and palette_op is None else 1
+    return max(nd, gr, 2)
+
+
+@themed
 def plotFaciesZoneCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:str, facies:str,
-                         ztop:float, zbot:float, facies_colors:list[str], facies_labels:list[str],
-                        ztops:list[float], zbots:list[float], zonename:list[str], limit:str, res_thres:float=10.,
-                        palette_op:str=None, fill:str=None, flag_name = 'Lithofacies',
-                       title:str='Log plot', figsize:tuple=(10, 20)) -> None:
+                        ztop:float, zbot:float, facies_colors:list[str], facies_labels:list[str],
+                        ztops:list[float], zbots:list[float], zonename:list[str], limit:str=None, res_thres:float=10.,
+                        palette_op:str=None, fill:str=None, flag_name:str='Lithofacies',
+                        title:str='Log plot', figsize:tuple=None) -> plt.Figure:
     r'''
-    Function for plotting three combo logs alongside the zonation/reservoir track
+    Gamma ray, resistivity and neutron-density tracks with a zone track and a facies track
 
     Parameters
     ----------
-
     data : pd.DataFrame
-        Dataframe of data 
+        Log data
 
-    depth : str
-        Depth column 
-
-    gr : str
-        Gamma ray column 
-
-    res : str
-        Resistivity column
-
-    nphi :  str
-        Neutron porosity column
-
-    rhob :  str
-        Bulk density column
+    depth, gr, res, nphi, rhob : str
+        Depth, gamma ray, resistivity, neutron porosity and bulk density columns
 
     facies : str
-        Fluid/LithoFacies column
+        Facies column, as codes 0, 1, ... in the order of `facies_labels`, or as the labels themselves
 
-    ztop : float 
-        Top or minimum depth value
+    ztop, zbot : float
+        Depth range shown
 
-    zbot : float
-        Bottom or maximum depth value
+    facies_colors : list of str
+        Colour of each facies, in the order of `facies_labels`
 
-    facies_colors: list
-        Facies colors. Must be equal to number of unique `facies` and `facies_label`
+    facies_labels : list of str
+        Name of each facies
 
-    ztops : list of float
-        Tops (depth) of each reservoir/zones
-
-    zbots : list of float
-        Bottom (depth) of each reservoir/zones
+    ztops, zbots : list of float
+        Top and base depth of each zone
 
     zonename : list of str
-        Name of each zones
+        Name of each zone
 
     limit : str default None
-        Tells which side to fill the gamma ray track, ['left', 'right'].
-        lf None, it's filled in both sides delineating shale-sand region
+        Edge the gamma ray is shaded from with a colour ramp, 'left' or 'right'. With neither `limit` nor
+        `palette_op`, sand (yellow) and shale (grey) are shaded on either side of 75 gAPI
 
-    res_thres : float
-        Resistivity threshold to use in the identification on hydrocarbon bearing zone
+    res_thres : float default 10
+        Resistivity above which the resistivity track is shaded as hydrocarbon bearing
 
-    palette_op : str optional 
-        Palette option to fill gamma ray log. If None, `fill` must be provided
+    palette_op : str default None
+        Matplotlib colour map for the gamma ray ramp; defaults to a sand-to-shale ramp
 
     fill : str default None
-        To show either of the porous and/or non porous zones in the neutron-density crossover.
-        Can either be ['left', 'right', 'both']
+        Neutron-density shading: 'left' where they cross over (porous, gas), 'right' where they separate
+        (shale), 'both', or None
 
-        * default None - show neither of the porous nor non-porous zones
-        * 'left' - shows only porous zones
-        * 'right' - shows only non-porous zones
-        * 'both' - shows both porous and non-porous zones
-                
     flag_name : str
-        x-label for facies log
+        Header of the facies track
 
     title : str
-        Title of plot
+        Title of the plot
 
-    figsize : tuple
-        Size of plot
-        
+    figsize : tuple default None
+        Size of the figure in inches; sized from the number of tracks when None
+
+    Returns
+    -------
+    matplotlib Figure
+
     Example
     -------
     >>> from petrolib.plots import plotFaciesZoneCombo
-    >>> plotFaciesZoneCombo(well11, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB', 'LITHO', ztop=5500, zbot=9000,
-    >>>              ztops=[5561.38,7116.47, 8780.19], zbots=[5761.46, 7351.19, 8923.58], zonename=['SAND A', 'SAND B', 'SAND C'], 
-    >>>              fill='both', limit=None, figsize=(13, 30), title='ATAGA-11')
+    >>> plotFaciesZoneCombo(well11, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB', 'LITHO', 5500, 9000,
+    ...                     ['#f2cf6b', '#b4aa98'], ['Sandstone', 'Shale'],
+    ...                     ztops=[5561.4, 7116.5], zbots=[5761.5, 7351.2], zonename=['SAND A', 'SAND B'],
+    ...                     fill='both', title='ATAGA-11')
     '''
 
-    depth_log:pd.Series = data[depth]
-    gr_log:pd.Series = data[gr]
-    res_log:pd.Series = data[res]
-    nphi_log:pd.Series = data[nphi]
-    rhob_log:pd.Series = data[rhob]
-
-    assert len(data[facies].unique()) == len(facies_labels) == len(facies_colors), 'Number of unique facies, facies labels and facies colors must be equal'
+    assert len(data[facies].dropna().unique()) <= len(facies_labels) == len(facies_colors), \
+        'Number of unique facies must not exceed the number of facies labels and colors'
     assert len(ztops) == len(zbots) == len(zonename), 'Number of tops, bottoms and zonename must be equal'
-
-    # color-fill options
-    span = abs(gr_log.min()-gr_log.max())
-    if palette_op != None:
-        cmap=plt.get_cmap(palette_op)
-    else:
-        pass
-    color_index = np.arange(gr_log.min(), gr_log.max(), span/100)
-
-    # create the subplots; ncols equals the number of logs
-    fig, ax = plt.subplots(nrows=1, ncols=5, figsize=figsize)
-    fig.suptitle(f'{title}', size=15, y=1.)
-
-    #for GR track
-    ax[0].minorticks_on()
-    ax[0].grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
-    ax[0].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-    ax[0].plot(gr_log, depth_log, color='black', linewidth=1.0)
-    ax[0].set_xlim(gr_log.min(), gr_log.max())
-    ax[0].set_ylim(ztop, zbot)
-    ax[0].invert_yaxis()
-    ax[0].set_ylabel('Depth (m/ft)')
-    ax[0].xaxis.label.set_color('black')
-    ax[0].tick_params(axis='x', colors='black')
-    ax[0].spines['top'].set_edgecolor('black')
-    ax[0].set_xlabel('Gamma ray\nGR (gAPI)', color='black', labelpad=15)
-    ax[0].spines["top"].set_position(("axes", 1.01))
-    ax[0].xaxis.set_ticks_position("top")
-    ax[0].xaxis.set_label_position("top")
-    ax[0].hlines([t for t in ztops], xmin=gr_log.min(), xmax=gr_log.max(), colors='black', linestyles='solid',linewidth=1.)
-    ax[0].hlines([b for b in zbots], xmin=gr_log.min(), xmax=gr_log.max(), colors='black', linestyles='solid', linewidth=1.)
-    
-    if palette_op == None:
-        assert limit == None, 'Set limit to None'
-        gr_base:float = 75.#(gr_log.max() - gr_log.min())/2
-        ax[0].fill_betweenx(depth_log, gr_base, gr_log, where=gr_log<=gr_base, facecolor='yellow', linewidth=0)
-        ax[0].fill_betweenx(depth_log, gr_log, gr_base, where=gr_log>=gr_base, facecolor='brown', linewidth=0)
-
-    elif palette_op != None:
-        assert limit != None, 'Set limit value. Can\'t be None'
-        if limit == 'left':
-            for index in sorted(color_index):
-                index_value = (index-gr_log.min())/span
-                palette = cmap(index_value)
-                ax[0].fill_betweenx(depth_log, gr_log.min(), gr_log, where=gr_log>=index, color=palette)
-
-        elif limit == 'right':
-            for index in sorted(color_index):
-                index_value = (index-gr_log.min())/span
-                palette = cmap(index_value)
-                ax[0].fill_betweenx(depth_log, gr_log.max(), gr_log, where=gr_log>=index, color=palette)
-
-
-    #for resitivity
-    ax[1].minorticks_on()
-    ax[1].grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
-    ax[1].grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-    ax[1].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-    ax[1].semilogx(res_log, depth_log, color='red', linewidth=1.0, linestyle='--')
-    ax[1].set_xlim(res_log.min(), res_log.max())
-    ax[1].set_ylim(ztop, zbot)
-    ax[1].invert_yaxis()
-    ax[1].xaxis.label.set_color('red')
-    ax[1].tick_params(axis='x', colors='red')
-    ax[1].spines['top'].set_edgecolor('red')
-    ax[1].set_xlabel('Resistivity\nILD (ohm.m)', labelpad=15)
-    ax[1].spines["top"].set_position(("axes", 1.01))
-    ax[1].xaxis.set_ticks_position("top")
-    ax[1].xaxis.set_label_position("top")
-    ax[1].fill_betweenx(depth_log, res_thres, res_log, where=res_log >= res_thres, interpolate=True, color='red', linewidth=0)
-    ax[1].hlines([t for t in ztops], xmin=res_log.min(), xmax=res_log.max(), colors='black', linestyles='solid',linewidth=1.)
-    ax[1].hlines([b for b in zbots], xmin=res_log.min(), xmax=res_log.max(), colors='black', linestyles='solid', linewidth=1.)
-    ax[1].set_yticklabels([])
-
-    #for nphi
-    ax[2].minorticks_on()
-    ax[2].yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
-    ax[2].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-    ax[2].set_xticklabels([]);ax[2].set_xticks([])
-    ax[2].set_yticklabels([])
-    rhob_ = ax[2].twiny()
-    rhob_.plot(rhob_log, depth_log, color='red', linewidth=1.)
-    rhob_.set_xlim(rhob_log.min(), rhob_log.max())
-    rhob_.set_ylim(ztop, zbot)
-    rhob_.invert_yaxis()
-    rhob_.xaxis.label.set_color('red')
-    rhob_.tick_params(axis='x', colors='red')
-    rhob_.spines['top'].set_edgecolor('red')
-    rhob_.set_xlabel('Bulk Density\nRHOB (g/cm3)', color='red')
-    rhob_.spines["top"].set_position(("axes", 1.01))
-    rhob_.xaxis.set_ticks_position("top")
-    rhob_.xaxis.set_label_position("top")
-    rhob_.set_xticks(list(np.linspace(rhob_log.min(), rhob_log.max(), num=4)))
-    rhob_.hlines([t for t in ztops], xmin=rhob_log.min(), xmax=rhob_log.max(), colors='black', linestyles='solid',linewidth=1.)
-    rhob_.hlines([b for b in zbots], xmin=rhob_log.min(), xmax=rhob_log.max(), colors='black', linestyles='solid', linewidth=1.)
-
-    nphi_ = ax[2].twiny()
-    nphi_.grid(which='major', linestyle='-', linewidth=0.5, color='darkgrey')
-    nphi_.plot(nphi_log, depth_log, color='blue', linewidth=1.0, linestyle='--')
-    nphi_.set_xlim(nphi_log.max(), nphi_log.min())
-    nphi_.set_ylim(ztop, zbot)
-    nphi_.invert_yaxis()
-    # nphi_.invert_xaxis()
-    nphi_.xaxis.label.set_color('blue')
-    nphi_.tick_params(axis='x', colors='blue')
-    nphi_.spines['top'].set_edgecolor('blue')
-    nphi_.set_xlabel('Neutron Porosity\nNPHI (m3/m3)', color='blue')
-    nphi_.spines["top"].set_position(("axes", 1.05))
-    nphi_.xaxis.set_ticks_position("top")
-    nphi_.xaxis.set_label_position("top")
-    nphi_.set_xticks(list(np.linspace(nphi_log.min(), nphi_log.max(), num=4)))
-    nphi_.hlines([t for t in ztops], xmin=nphi_log.min(), xmax=nphi_log.max(), colors='black', linestyles='solid',linewidth=1.)
-    nphi_.hlines([b for b in zbots], xmin=nphi_log.min(), xmax=nphi_log.max(), colors='black', linestyles='solid', linewidth=1.)
-    #setting up the nphi and rhob fill
-    #inspired from 
-    x1=rhob_log
-    x2=nphi_log
-    
-    x = np.array(rhob_.get_xlim())
-    z = np.array(nphi_.get_xlim())
-
-    nz=((x2-np.max(z))/(np.min(z)-np.max(z)))*(np.max(x)-np.min(x))+np.min(x)
-    
-    
-    if fill == 'left':
-        #shows only porous zones
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1<=nz, interpolate=True, hatch='..', facecolor='yellow', linewidth=0)
-    elif fill == 'right':
-        #shows only non-porous zones
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='...', facecolor='slategray', linewidth=0)
-    elif fill == 'both':
-        #shows both porous and non-porous zones
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1<=nz, interpolate=True, hatch='..', facecolor='yellow', linewidth=0)
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='...', facecolor='slategray', linewidth=0)
-
-    #formation subplot
-    ax[3].set_ylim(ztop, zbot);# ax[-1].invert_yaxis()
-    ax[3].set_title('Zones', pad=45)
-    ax[3].set_xticks([])
-    ax[3].set_yticklabels([])
-    ax[3].set_xticklabels([])
-    ax[3].hlines([t for t in ztops], xmin=0, xmax=1, colors='black', linestyles='solid',linewidth=1.)
-    ax[3].hlines([b for b in zbots], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
-    ax[3].invert_yaxis()
-    formations = ax[3]
-
-    #delineating zones
-    # np.random.seed(2)
-    cycol = cycle('bgrcymk')
-    color = [choice(next(cycol)) for i in range(len(ztops))]
-    np.random.shuffle(color)
-    for i in ax[:-1]:                      #not over the lithofacies track
-        for t,b, c in zip(ztops, zbots, color):
-            i.axhspan(t, b, color=c, alpha=.3)
-        continue
-    #adding zone names
-    fm_mid = []
-            
-    for t, b in zip(ztops, zbots):
-        fm_mid.append((t+(b-t)/2))
-    
-    for label, fm_mids in zip(zonename, fm_mid):
-        formations.text(0.5, fm_mids, label, rotation=0,
-                verticalalignment='center', fontweight='bold',
-                fontsize='large')
-
-    facies_colormap = {}
-    for ind, label in enumerate(facies_labels):
-        facies_colormap[label] = facies_colors[ind]
-
-    no = len(data[facies].unique())
-
-    cmap_facies = colors.ListedColormap(
-            facies_colors[0 : no], 'indexed'
-            )
-    # ax[-1].invert_yaxis()
-    #facies may be integer codes or labels; labels are coded by their position in facies_labels
-    codes = data[facies]
+    df = _window(data, depth, ztop, zbot)
+    layout = LogLayout(ztop, zbot, [1, 1, 1.3, .75, .55], _combo_rows(fill, limit, palette_op), title,
+                       f'{min(ztop, zbot):g}–{max(ztop, zbot):g}', figsize, _depth_label(depth), legend_rows=1)
+    _combo(layout, df, depth, gr, res, nphi, rhob, res_thres, fill, palette_op, limit)
+    layout.zones(3, ztops, zbots, zonename)
+    codes = df[facies]
     if not pd.api.types.is_numeric_dtype(codes):
         codes = codes.map({label: i for i, label in enumerate(facies_labels)})
-    cluster3=np.repeat(np.expand_dims(codes.to_numpy(dtype=float),1), 100, 1)
-    #draw the facies in depth, so they line up with the log tracks and the zone shading
-    im=ax[-1].imshow(cluster3, interpolation='none', aspect='auto',
-                    cmap=cmap_facies,vmin=0, vmax=no, extent=[0, 1, np.nanmax(depth_log), np.nanmin(depth_log)])
-    ax[-1].set_ylim(zbot, ztop)
-    
-    divider = make_axes_locatable(ax[-1])
-    cax = divider.append_axes("right", size="20%", pad=0.05)
-    cbar=plt.colorbar(im, cax=cax)
-    cbar.set_label((150*' ').join(facies_labels))
-    cbar.set_ticks(range(0,1)); cbar.set_ticklabels('')
-    x = [4]
-    
-    for i, f in zip(x, [flag_name]):
-        ax[i].set_title(f, pad=45)
-        ax[i].set_xticks([])
-        ax[i].set_yticklabels([])
-        ax[i].set_xticklabels([])
-    plt.tight_layout(h_pad=1.2)
-    fig.subplots_adjust(wspace = 0.0)
+    layout.facies(4, df, depth, codes, facies_colors, facies_labels, flag_name)
+    return layout.finish()
 
 
-def tripleCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:str, ztop:float, zbot:float, 
+@themed
+def tripleCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:str, ztop:float, zbot:float,
                 res_thres:float=10.0, fill:str=None, palette_op:str=None,
-                limit:str=None, figsize:tuple=(9, 10), title:str='Three Combo Log Plot') -> None:
-    
+                limit:str=None, figsize:tuple=None, title:str='Three Combo Log Plot') -> plt.Figure:
+
     r'''
-    Plots a three combo log of well data
+    Triple-combo display: gamma ray, resistivity and neutron-density tracks
 
     Parameters
     ----------
-
     data : pd.DataFrame
-        Dataframe of data 
+        Log data
 
-    depth : str
-        Depth column 
+    depth, gr, res, nphi, rhob : str
+        Depth, gamma ray, resistivity, neutron porosity and bulk density columns
 
-    gr : str
-        Gamma ray column 
+    ztop, zbot : float
+        Depth range shown
 
-    res : str
-        Resistivity column
-
-    nphi :  str
-        Neutron porosity column
-
-    rhob :  str
-        Bulk density column
-
-    ztop : list 
-        Top or minimum depth to zoom on. 
-
-    zbot : list
-        Bottom or maximum depth to zoom on.
-
-    res_thres : float
-        Resistivity threshold to use in the identification on hydrocarbon bearing zone
+    res_thres : float default 10
+        Resistivity above which the resistivity track is shaded as hydrocarbon bearing
 
     fill : str default None
-        To show either of the porous and/or non porous zones in the neutron-density crossover.
-        Can either be ['left', 'right', 'both']
+        Neutron-density shading: 'left' where they cross over (porous, gas), 'right' where they separate
+        (shale), 'both', or None
 
-        * default None - show neither of the porous nor non-porous zones
-        * 'left' - shows only porous zones
-        * 'right' - shows only non-porous zones
-        * 'both' - shows both porous and non-porous zones
-
-    palette_op : str optional 
-        Palette option to fill gamma ray log
+    palette_op : str default None
+        Matplotlib colour map for the gamma ray ramp; defaults to a sand-to-shale ramp
 
     limit : str default None
-        Tells which side to fill the gamma ray track, ['left', 'right']
-        lf None, it's filled in both sides delineating shale-sand region
+        Edge the gamma ray is shaded from with a colour ramp, 'left' or 'right'. With neither `limit` nor
+        `palette_op`, sand (yellow) and shale (grey) are shaded on either side of 75 gAPI
 
-    figsize : tuple
-        Size of plot
-    
+    figsize : tuple default None
+        Size of the figure in inches; sized from the number of tracks when None
+
     title : str
-        Title of plot
+        Title of the plot
+
+    Returns
+    -------
+    matplotlib Figure
 
     Example
     -------
-    >>> import matplotlib inline
     >>> from petrolib.plots import tripleCombo
-    >>> # %matplotlib inline
-    >>> tripleCombo(df, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB', ztop=3300,
-    >>>                     zbot=3450, res_thres=10, fill='right', palette_op='rainbow', limit='left')
-    
+    >>> tripleCombo(df, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB', ztop=3300, zbot=3450, res_thres=10, fill='both')
     '''
-        
-    #getting logs from dataframe
-    depth_log = data[depth]
-    gr_log = data[gr]
-    res_log = data[res]
-    nphi_log = data[nphi]
-    rhob_log = data[rhob]
 
-    # color-fill options
-    span = abs(gr_log.min()-gr_log.max())
-    if palette_op != None:
-        cmap=plt.get_cmap(palette_op)
-    else:
-        pass
-    color_index = np.arange(gr_log.min(), gr_log.max(), span/100)
-
-    # create the subplots; ncols equals the number of logs
-    fig, ax = plt.subplots(nrows=1, ncols=3, figsize=figsize,sharey=True)
-    fig.suptitle(f'{title}', size=15, y=1.)
-
-    #for GR track
-    ax[0].minorticks_on()
-    ax[0].grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
-    ax[0].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-    ax[0].plot(gr_log, depth_log, color='black', linewidth=1.0)
-    ax[0].set_xlim(gr_log.min(), gr_log.max())
-    ax[0].set_ylim(ztop, zbot)
-    ax[0].invert_yaxis()
-    ax[0].set_ylabel('Depth (m/ft)')
-    ax[0].xaxis.label.set_color('black')
-    ax[0].tick_params(axis='x', colors='black')
-    ax[0].spines['top'].set_edgecolor('black')
-    ax[0].set_xlabel('Gamma ray\nGR (gAPI)', color='black', labelpad=15)
-    ax[0].spines["top"].set_position(("axes", 1.02))
-    ax[0].xaxis.set_ticks_position("top")
-    ax[0].xaxis.set_label_position("top")
-    
-    if palette_op == None:
-        assert limit == None, 'Set limit to None'
-        gr_base = (gr_log.max() - gr_log.min())/2
-        ax[0].fill_betweenx(depth_log, gr_base, gr_log, where=gr_log<=gr_base, facecolor='yellow', linewidth=0)
-        ax[0].fill_betweenx(depth_log, gr_log, gr_base, where=gr_log>=gr_base, facecolor='brown', linewidth=0)
-
-    elif palette_op != None:
-        assert limit != None, 'Set limit value. Can\'t be None'
-        if limit == 'left':
-            for index in sorted(color_index):
-                index_value = (index-gr_log.min())/span
-                palette = cmap(index_value)
-                ax[0].fill_betweenx(depth_log, gr_log.min(), gr_log, where=gr_log>=index, color=palette)
-
-        elif limit == 'right':
-            for index in sorted(color_index):
-                index_value = (index-gr_log.min())/span
-                palette = cmap(index_value)
-                ax[0].fill_betweenx(depth_log, gr_log.max(), gr_log, where=gr_log>=index, color=palette)
+    df = _window(data, depth, ztop, zbot)
+    layout = LogLayout(ztop, zbot, [1, 1, 1.3], _combo_rows(fill, limit, palette_op), title,
+                       f'{min(ztop, zbot):g}–{max(ztop, zbot):g}', figsize, _depth_label(depth))
+    _combo(layout, df, depth, gr, res, nphi, rhob, res_thres, fill, palette_op, limit)
+    return layout.finish()
 
 
-    #for resitivity
-    ax[1].minorticks_on()
-    ax[1].grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
-    ax[1].grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-    ax[1].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-    ax[1].semilogx(res_log, depth_log, color='red', linewidth=1.0, linestyle='--')
-    ax[1].set_xlim(res_log.min(), res_log.max())
-    ax[1].set_ylim(ztop, zbot)
-    ax[1].invert_yaxis()
-    ax[1].xaxis.label.set_color('red')
-    ax[1].tick_params(axis='x', colors='red')
-    ax[1].spines['top'].set_edgecolor('red')
-    ax[1].set_xlabel('Resistivity\nILD (ohm.m)', labelpad=15)
-    ax[1].spines["top"].set_position(("axes", 1.02))
-    ax[1].xaxis.set_ticks_position("top")
-    ax[1].xaxis.set_label_position("top")
-    ax[1].fill_betweenx(depth_log, res_thres, res_log, where=res_log >= res_thres, interpolate=True, color='red', linewidth=0)
-    
-    #for nphi
-    ax[2].minorticks_on()
-    ax[2].yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
-    ax[2].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-    ax[2].set_xticklabels([]);ax[2].set_xticks([])
-    rhob_ = ax[2].twiny()
-    rhob_.plot(rhob_log, depth_log, color='red', linewidth=1.)
-    rhob_.set_xlim(rhob_log.min(), rhob_log.max())
-    rhob_.set_ylim(ztop, zbot)
-    rhob_.invert_yaxis()
-    rhob_.xaxis.label.set_color('red')
-    rhob_.tick_params(axis='x', colors='red')
-    rhob_.spines['top'].set_edgecolor('red')
-    rhob_.set_xlabel('Bulk Density\nRHOB (g/cm3)', color='red')
-    rhob_.spines["top"].set_position(("axes", 1.02))
-    rhob_.xaxis.set_ticks_position("top")
-    rhob_.xaxis.set_label_position("top")
-    rhob_.set_xticks(list(np.linspace(rhob_log.min(), rhob_log.max(), num=5, dtype='float32')))
-    
-    nphi_ = ax[2].twiny()
-    nphi_.grid(which='major', linestyle='-', linewidth=0.5, color='darkgrey')
-    nphi_.plot(nphi_log, depth_log, color='blue', linewidth=1.0, linestyle='--')
-    nphi_.set_xlim(nphi_log.max(), nphi_log.min())
-    nphi_.set_ylim(ztop, zbot)
-    nphi_.invert_yaxis()
-    # nphi_.invert_xaxis()
-    nphi_.xaxis.label.set_color('blue')
-    nphi_.tick_params(axis='x', colors='blue')
-    nphi_.spines['top'].set_edgecolor('blue')
-    nphi_.set_xlabel('Neutron Porosity\nNPHI (m3/m3)', color='blue')
-    nphi_.spines["top"].set_position(("axes", 1.05))
-    nphi_.xaxis.set_ticks_position("top")
-    nphi_.xaxis.set_label_position("top")
-    nphi_.set_xticks(list(np.linspace(nphi_log.min(), nphi_log.max(), num=5, dtype='float32')))
-    
-    #setting up the nphi and rhob fill
-    #inspired from 
-    x1=rhob_log
-    x2=nphi_log
-    
-    x = np.array(rhob_.get_xlim())
-    z = np.array(nphi_.get_xlim())
-
-    nz=((x2-np.max(z))/(np.min(z)-np.max(z)))*(np.max(x)-np.min(x))+np.min(x)
-    
-    
-    if fill == 'left':
-        #shows only porous zones
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1<=nz, interpolate=True, hatch='..', facecolor='yellow', linewidth=0)
-    elif fill == 'right':
-        #shows only non-porous zones
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='...', facecolor='slategray', linewidth=0)
-    elif fill == 'both':
-        #shows both porous and non-porous zones
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1<=nz, interpolate=True, hatch='..', facecolor='yellow', linewidth=0)
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='...', facecolor='slategray', linewidth=0)
-
-    plt.tight_layout(h_pad=1.2)
-    fig.subplots_adjust(wspace = 0.0)
-
-    plt.show()
+def _track_curves(track) -> list:
+    return list(track) if isinstance(track, (list, tuple)) else [track]
 
 
-def plotLog(df:pd.DataFrame, depth:str, logs:List[str], top:float, bottom:float, title:str='Log Plot', figsize:tuple=(8, 12)):
-
-        r'''
-        Plots log curves singly. To plot overlay plots use `plots.plotLogs` or `plots.plotLogFacies`
-
-        Parameters
-        ----------
-        df : pd.DataFrame
-            Dataframe
-
-        depth : str
-            Depth column
-
-        logs : list of str
-            A list of logs curves to include in plot
-        
-        top : float
-            Minimum depth to zoom on
-
-        bottom : float
-            Maximum depth to zoom on
-
-        title : str
-            Plot title
-
-        figsize : tuple
-            Size of plot
-
-        Example
-        -------
-        >>> from petrolib.plots import plotLog
-        >>> plotLog('DEPTH', ['GR', 'RT', 'RHOB', 'NPHI', 'CALI'], 3300, 3600, 'Volve')
-        >>> plotLog(df,'DEPTH', ['NPHI'], 2751, 2834.58, 'Fre-1')
-        
-        '''
-    
-        # create the subplots; ncols equals the number of logs
-        fig, ax = plt.subplots(nrows=1, ncols=len(logs), figsize=figsize, sharey=True)
-        fig.suptitle(f'{title}', size=15, y=1.)
-
-        cycol = cycle('bgrcmyk')
-        color = [choice(next(cycol)) for i in range(len(logs))]
-        np.random.shuffle(color)
-
-        if len(logs) > 1:
-            for i in range(len(logs)):
-                np.random.shuffle(color)
-                if is_resistivity(logs[i]):
-                    # for resistivity, semilog plot
-                    ax[i].semilogx(df[logs[i]], df[depth], color=color[i], linewidth=1.)
-                else:
-                    # for non-resistivity, normal plot
-                    ax[i].plot(df[logs[i]], df[depth], color=color[i], linewidth=1.)
-
-                if is_porosity(logs[i]):
-                    ax[i].invert_xaxis()
-
-                ax[i].set_title(logs[i], pad=15)
-                ax[i].minorticks_on()
-                ax[i].set_ylim(top, bottom); ax[i].invert_yaxis()
-                ax[i].grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
-                ax[i].grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-                ax[i].xaxis.label.set_color(color[i])
-                ax[i].tick_params(axis='x', colors=color[i])
-                ax[i].spines['top'].set_edgecolor(color[i])
-                ax[i].spines["top"].set_position(("axes", 1.02)); ax[i].xaxis.set_ticks_position("top")
-                ax[i].xaxis.set_label_position("top")
-
-            ax[0].set_ylabel('DEPTH (m/ft)')
-        
-        elif len(logs) == 1:
-            
-            for i in logs:
-                np.random.shuffle(color)
-                if is_resistivity(i):
-                    # for resistivity, semilog plot
-                    plt.semilogx(df[i], df[depth], color=next(cycol), linewidth=1.)
-                else:
-                        # for non-resistivity, normal plot
-                    plt.plot(df[i], df[depth], color=next(cycol), linewidth=1.)
-
-                if is_porosity(i):
-                    plt.xlim(df[i].max(), df[i].min())
-                    
-                plt.title(i, pad=15)
-                plt.minorticks_on()
-                plt.ylim(bottom, top);
-                plt.grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
-                plt.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-                plt.tick_params(axis='x', colors=next(cycol))
-            
-            ax[0].set_ylabel('DEPTH (m/ft)')
-
-        plt.tight_layout(h_pad=1)
-        fig.subplots_adjust(wspace = 0.0)
-        plt.show()
+def _overlay_curves(names:list) -> list:
+    #a neutron and a density curve in one track use the compatible scales, neutron dashed
+    kinds = [log_kind(n) for n in names]
+    curves = []
+    for n, k in zip(names, kinds):
+        if k == 'NPHI' and 'RHOB' in kinds:
+            curves.append(Curve(n, scale=(.45, -.15), ls=(0, (4, 1.5))))
+        elif k == 'RHOB' and 'NPHI' in kinds:
+            curves.append(Curve(n, scale=(1.95, 2.95)))
+        else:
+            curves.append(Curve(n))
+    #curves of one type share a colour; give repeats the next categorical colours
+    seen = {}
+    for c in curves:
+        color = st.curve_color(c.name)
+        if color in seen.values():
+            color = next(s for s in st.SERIES if s not in seen.values())
+        seen[c.name] = color
+        c.color = color
+    return curves
 
 
-def plotZoneCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:str, ztop:float, zbot:float,
-                   ztops:List[float], zbots:List[float], zonename:List[str], limit:str, res_thres:float=10., 
-                   palette_op:str=None, fill:str=None, title:str='Log plot', figsize:tuple=(10, 20)) -> None:
-    
+def _log_tracks(df:pd.DataFrame, depth:str, logs:list, top:float, bottom:float, title:str, figsize:tuple,
+                extra:int=0, legend_rows:int=0) -> LogLayout:
+    tracks = [_overlay_curves(_track_curves(t)) for t in logs]
+    rows = max([len(t) for t in tracks] + [2])
+    widths = [1.15 if len(t) > 1 else 1. for t in tracks] + [.6] * extra
+    layout = LogLayout(top, bottom, widths, rows, title, f'{min(top, bottom):g}–{max(top, bottom):g}', figsize,
+                       _depth_label(depth), legend_rows)
+    for i, curves in enumerate(tracks):
+        layout.curves(i, df, depth, curves)
+    return layout
+
+
+@themed
+def plotLog(df:pd.DataFrame, depth:str, logs:List[str], top:float, bottom:float, title:str='Log Plot',
+            figsize:tuple=None) -> plt.Figure:
+
     r'''
-    Function for plotting three combo logs alongside the zonation/reservoir track
+    Plots each log curve in its own track. To overlay curves in one track use `plotLogs`
 
     Parameters
     ----------
-
     df : pd.DataFrame
-        Dataframe of data 
+        Log data
 
     depth : str
-        Depth column 
+        Depth column
 
-    gr : str
-        Gamma ray column 
+    logs : list of str
+        Curves to plot, one track each
 
-    res : str
-        Resistivity column
+    top, bottom : float
+        Depth range shown
 
-    nphi :  str
-        Neutron porosity column
+    title : str
+        Title of the plot
 
-    rhob :  str
-        Bulk density column
+    figsize : tuple default None
+        Size of the figure in inches; sized from the number of tracks when None
 
-    ztop : float 
-        Top or minimum depth value
+    Returns
+    -------
+    matplotlib Figure
 
-    zbot : float
-        Bottom or maximum depth value
+    Example
+    -------
+    >>> from petrolib.plots import plotLog
+    >>> plotLog(df, 'DEPTH', ['GR', 'RT', 'RHOB', 'NPHI', 'CALI'], 3300, 3600, 'Volve')
+    '''
 
-    ztops : list of float
-        Tops (depth) of each reservoir/zones
+    logs = [logs] if isinstance(logs, str) else list(logs)
+    return _log_tracks(_window(df, depth, top, bottom), depth, logs, top, bottom, title, figsize).finish()
 
-    zbots : list of float
-        Bottom (depth) of each reservoir/zones
+
+@themed
+def plotZoneCombo(data:pd.DataFrame, depth:str, gr:str, res:str, nphi:str, rhob:str, ztop:float, zbot:float,
+                  ztops:List[float], zbots:List[float], zonename:List[str], limit:str=None, res_thres:float=10.,
+                  palette_op:str=None, fill:str=None, title:str='Log plot', figsize:tuple=None) -> plt.Figure:
+
+    r'''
+    Gamma ray, resistivity and neutron-density tracks with a zone track; zone boundaries cross every track
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Log data
+
+    depth, gr, res, nphi, rhob : str
+        Depth, gamma ray, resistivity, neutron porosity and bulk density columns
+
+    ztop, zbot : float
+        Depth range shown
+
+    ztops, zbots : list of float
+        Top and base depth of each zone
 
     zonename : list of str
-        Name of each zones
+        Name of each zone
 
     limit : str default None
-        Tells which side to fill the gamma ray track, ['left', 'right'].
-        lf None, it's filled in both sides delineating shale-sand region
+        Edge the gamma ray is shaded from with a colour ramp, 'left' or 'right'. With neither `limit` nor
+        `palette_op`, sand (yellow) and shale (grey) are shaded on either side of 75 gAPI
 
-    res_thres : float
-        Resistivity threshold to use in the identification on hydrocarbon bearing zone
+    res_thres : float default 10
+        Resistivity above which the resistivity track is shaded as hydrocarbon bearing
 
-    palette_op : str optional 
-        Palette option to fill gamma ray log. If None, `fill must be provided
+    palette_op : str default None
+        Matplotlib colour map for the gamma ray ramp; defaults to a sand-to-shale ramp
 
     fill : str default None
-        To show either of the porous and/or non porous zones in the neutron-density crossover.
-        Can either be ['left', 'right', 'both']
+        Neutron-density shading: 'left' where they cross over (porous, gas), 'right' where they separate
+        (shale), 'both', or None
 
-        * default None - show neither of the porous nor non-porous zones
-        * 'left' - shows only porous zones
-        * 'right' - shows only non-porous zones
-        * 'both' - shows both porous and non-porous zones
+    title : str
+        Title of the plot
 
-    figsize : tuple
-        Size of plot
-        
+    figsize : tuple default None
+        Size of the figure in inches; sized from the number of tracks when None
+
+    Returns
+    -------
+    matplotlib Figure
+
     Example
     -------
     >>> from petrolib.plots import plotZoneCombo
     >>> plotZoneCombo(well11, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB', min(ztop), max(zbot),
-    >>>          ztop, zbot, zn, fill='both', limit=None, figsize=(13, 30), title='ATAGA-11')
+    ...               ztop, zbot, zn, fill='both', title='ATAGA-11')
     '''
-    #getting logs from dataframe
-    depth_log = data[depth]
-    gr_log = data[gr]
-    res_log = data[res]
-    nphi_log = data[nphi]
-    rhob_log = data[rhob]
 
-    # color-fill options
-    span = abs(gr_log.min()-gr_log.max())
-    if palette_op != None:
-        cmap=plt.get_cmap(palette_op)
-    else:
-        pass
-    color_index = np.arange(gr_log.min(), gr_log.max(), span/100)
-
-    # create the subplots; ncols equals the number of logs
-    fig, ax = plt.subplots(nrows=1, ncols=4, figsize=figsize, sharey=True)
-    fig.suptitle(f'{title}', size=15, y=1.)
-
-    #for GR track
-    ax[0].minorticks_on()
-    ax[0].grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
-    ax[0].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-    ax[0].plot(gr_log, depth_log, color='black', linewidth=1.0)
-    ax[0].set_xlim(gr_log.min(), gr_log.max())
-    ax[0].set_ylim(ztop, zbot)
-    ax[0].invert_yaxis()
-    ax[0].set_ylabel('Depth (m/ft)')
-    ax[0].xaxis.label.set_color('black')
-    ax[0].tick_params(axis='x', colors='black')
-    ax[0].spines['top'].set_edgecolor('black')
-    ax[0].set_xlabel('Gamma ray\nGR (gAPI)', color='black', labelpad=15)
-    ax[0].spines["top"].set_position(("axes", 1.01))
-    ax[0].xaxis.set_ticks_position("top")
-    ax[0].xaxis.set_label_position("top")
-    ax[0].hlines([t for t in ztops], xmin=gr_log.min(), xmax=gr_log.max(), colors='black', linestyles='solid',linewidth=1.)
-    ax[0].hlines([b for b in zbots], xmin=gr_log.min(), xmax=gr_log.max(), colors='black', linestyles='solid', linewidth=1.)
-    
-    if palette_op == None:
-        assert limit == None, 'Set limit to None'
-        gr_base = (gr_log.max() - gr_log.min())/2
-        ax[0].fill_betweenx(depth_log, gr_base, gr_log, where=gr_log<=gr_base, facecolor='yellow', linewidth=0)
-        ax[0].fill_betweenx(depth_log, gr_log, gr_base, where=gr_log>=gr_base, facecolor='brown', linewidth=0)
-
-    elif palette_op != None:
-        assert limit != None, 'Set limit value. Can\'t be None'
-        if limit == 'left':
-            for index in sorted(color_index):
-                index_value = (index-gr_log.min())/span
-                palette = cmap(index_value)
-                ax[0].fill_betweenx(depth_log, gr_log.min(), gr_log, where=gr_log>=index, color=palette)
-
-        elif limit == 'right':
-            for index in sorted(color_index):
-                index_value = (index-gr_log.min())/span
-                palette = cmap(index_value)
-                ax[0].fill_betweenx(depth_log, gr_log.max(), gr_log, where=gr_log>=index, color=palette)
+    assert len(ztops) == len(zbots) == len(zonename), 'Number of tops, bottoms and zonename must be equal'
+    df = _window(data, depth, ztop, zbot)
+    layout = LogLayout(ztop, zbot, [1, 1, 1.3, .8], _combo_rows(fill, limit, palette_op), title,
+                       f'{min(ztop, zbot):g}–{max(ztop, zbot):g}', figsize, _depth_label(depth))
+    _combo(layout, df, depth, gr, res, nphi, rhob, res_thres, fill, palette_op, limit)
+    layout.zones(3, ztops, zbots, zonename)
+    return layout.finish()
 
 
-    #for resitivity
-    ax[1].minorticks_on()
-    ax[1].grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
-    ax[1].grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-    ax[1].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-    ax[1].semilogx(res_log, depth_log, color='red', linewidth=1.0, linestyle='--')
-    ax[1].set_xlim(res_log.min(), res_log.max())
-    ax[1].set_ylim(ztop, zbot)
-    ax[1].invert_yaxis()
-    ax[1].xaxis.label.set_color('red')
-    ax[1].tick_params(axis='x', colors='red')
-    ax[1].spines['top'].set_edgecolor('red')
-    ax[1].set_xlabel('Resistivity\nILD (ohm.m)', labelpad=15)
-    ax[1].spines["top"].set_position(("axes", 1.01))
-    ax[1].xaxis.set_ticks_position("top")
-    ax[1].xaxis.set_label_position("top")
-    ax[1].fill_betweenx(depth_log, res_thres, res_log, where=res_log >= res_thres, interpolate=True, color='red', linewidth=0)
-    ax[1].hlines([t for t in ztops], xmin=res_log.min(), xmax=res_log.max(), colors='black', linestyles='solid',linewidth=1.)
-    ax[1].hlines([b for b in zbots], xmin=res_log.min(), xmax=res_log.max(), colors='black', linestyles='solid', linewidth=1.)
-    
-    #for nphi
-    ax[2].minorticks_on()
-    ax[2].yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
-    ax[2].yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-    ax[2].set_xticklabels([]);ax[2].set_xticks([])
-    rhob_ = ax[2].twiny()
-    rhob_.plot(rhob_log, depth_log, color='red', linewidth=1.)
-    rhob_.set_xlim(rhob_log.min(), rhob_log.max())
-    rhob_.set_ylim(ztop, zbot)
-    rhob_.invert_yaxis()
-    rhob_.xaxis.label.set_color('red')
-    rhob_.tick_params(axis='x', colors='red')
-    rhob_.spines['top'].set_edgecolor('red')
-    rhob_.set_xlabel('Bulk Density\nRHOB (g/cm3)', color='red')
-    rhob_.spines["top"].set_position(("axes", 1.01))
-    rhob_.xaxis.set_ticks_position("top")
-    rhob_.xaxis.set_label_position("top")
-    rhob_.set_xticks(list(np.linspace(rhob_log.min(), rhob_log.max(), num=4)))
-    rhob_.hlines([t for t in ztops], xmin=rhob_log.min(), xmax=rhob_log.max(), colors='black', linestyles='solid',linewidth=1.)
-    rhob_.hlines([b for b in zbots], xmin=rhob_log.min(), xmax=rhob_log.max(), colors='black', linestyles='solid', linewidth=1.)
-
-    nphi_ = ax[2].twiny()
-    nphi_.grid(which='major', linestyle='-', linewidth=0.5, color='darkgrey')
-    nphi_.plot(nphi_log, depth_log, color='blue', linewidth=1.0, linestyle='--')
-    nphi_.set_xlim(nphi_log.max(), nphi_log.min())
-    nphi_.set_ylim(ztop, zbot)
-    nphi_.invert_yaxis()
-    # nphi_.invert_xaxis()
-    nphi_.xaxis.label.set_color('blue')
-    nphi_.tick_params(axis='x', colors='blue')
-    nphi_.spines['top'].set_edgecolor('blue')
-    nphi_.set_xlabel('Neutron Porosity\nNPHI (m3/m3)', color='blue')
-    nphi_.spines["top"].set_position(("axes", 1.05))
-    nphi_.xaxis.set_ticks_position("top")
-    nphi_.xaxis.set_label_position("top")
-    nphi_.set_xticks(list(np.linspace(nphi_log.min(), nphi_log.max(), num=4)))
-    nphi_.hlines([t for t in ztops], xmin=nphi_log.min(), xmax=nphi_log.max(), colors='black', linestyles='solid',linewidth=1.)
-    nphi_.hlines([b for b in zbots], xmin=nphi_log.min(), xmax=nphi_log.max(), colors='black', linestyles='solid', linewidth=1.)
-    #setting up the nphi and rhob fill
-    #inspired from 
-    x1=rhob_log
-    x2=nphi_log
-    
-    x = np.array(rhob_.get_xlim())
-    z = np.array(nphi_.get_xlim())
-
-    nz=((x2-np.max(z))/(np.min(z)-np.max(z)))*(np.max(x)-np.min(x))+np.min(x)
-    
-    
-    if fill == 'left':
-        #shows only porous zones
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1<=nz, interpolate=True, hatch='..', facecolor='yellow', linewidth=0)
-    elif fill == 'right':
-        #shows only non-porous zones
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='...', facecolor='slategray', linewidth=0)
-    elif fill == 'both':
-        #shows both porous and non-porous zones
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1<=nz, interpolate=True, hatch='..', facecolor='yellow', linewidth=0)
-        rhob_.fill_betweenx(depth_log, x1, nz, where=x1>=nz, interpolate=True, hatch='...', facecolor='slategray', linewidth=0)
-
-    #formation subplot
-    ax[-1].set_ylim(ztop, zbot); ax[-1].invert_yaxis()
-    ax[-1].set_title('Zones', pad=45)
-    ax[-1].set_xticks([])
-    # ax[-1].set_yticklabels([])
-    ax[-1].set_xticklabels([])
-    ax[-1].hlines([t for t in ztops], xmin=0, xmax=1, colors='black', linestyles='solid',linewidth=1.)
-    ax[-1].hlines([b for b in zbots], xmin=0, xmax=1, colors='black', linestyles='solid', linewidth=1.)
-    formations = ax[-1]
-
-    #delineating zones
-    # np.random.seed(2)
-    cycol = cycle('bgrcymk')
-    color = [choice(next(cycol)) for i in range(len(ztops))]
-    np.random.shuffle(color)
-    for i in ax:
-        for t,b, c in zip(ztops, zbots, color):
-            i.axhspan(t, b, color=c, alpha=.3)
-
-    #adding zone names
-    fm_mid = []
-            
-    for t, b in zip(ztops, zbots):
-            fm_mid.append((t+(b-t)/2))
-    
-    for label, fm_mids in zip(zonename, fm_mid):
-        formations.text(0.5, fm_mids, label, rotation=0,
-                verticalalignment='center', fontweight='bold',
-                fontsize='large')
-            
-    plt.tight_layout(h_pad=1.2)
-    fig.subplots_adjust(wspace = 0.0)
+def _lithology_table() -> pd.DataFrame:
+    return pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'litho_info.csv'))
 
 
-def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom:float, facies:str=None,  
-                  title:str='Log Plot', figsize:tuple=(8, 12)):
+@themed
+def plotLogFacies(df:pd.DataFrame, depth:str, logs:List[list], top:float, bottom:float, facies:str=None,
+                  title:str='Log Plot', figsize:tuple=None) -> plt.Figure:
 
     r'''
-    
-    Plots overlayed/super-imposed log curves along with the facies. 
+    Log tracks, with curves in a list sharing one track, and an optional lithology track
 
     Parameters
     ----------
     df : pd.DataFrame
-        Dataframe
+        Log data
 
     depth : str
         Depth column
 
-    logs : list of lists/str
-        A list of logs curves to include in plot
-    
-    top : float
-        Minimum depth to zoom on
+    logs : list
+        Curves to plot; a list inside the list puts those curves in one track, e.g.
+        ['GR', 'RT', ['NPHI', 'RHOB']]
 
-    bottom : float
-        Maximum depth to zoom on
+    top, bottom : float
+        Depth range shown
 
-    facies : str
-        Facies columns. Supported facies include :
-            ['Sandstone', 'Sandstone/Shale', 'Shale', 'Marl', 'Dolomite', 'Limestone',
-            'Chalk', 'Halite', 'Anhydrite', 'Tuff', 'Coal', 'Basement']
+    facies : str default None
+        Lithology column, as names (e.g. 'Sandstone', 'Shale', from `model_facies`) or as the
+        lithology numbers of petrolib's lithology table
 
     title : str
-        Plot title
+        Title of the plot
 
-    figsize : tuple
-        Size of plot
+    figsize : tuple default None
+        Size of the figure in inches; sized from the number of tracks when None
+
+    Returns
+    -------
+    matplotlib Figure
 
     Example
     -------
-    >>> from petrolib.plots import *
-    >>> plotLogFacies(well11, 'DEPTH', ['GR', 'RT', ['RHOB', 'NPHI']], facies='litho', top=well11.DEPTH.min(),
-                            bottom=well11.DEPTH.max(), figsize=(9, 12), title='15-9-F1A')
+    >>> from petrolib.plots import plotLogFacies
+    >>> plotLogFacies(df, 'DEPTH', ['GR', 'RT', ['NPHI', 'RHOB']], 3300, 3600, facies='litho', title='Volve')
+    '''
 
-    '''    
-
-    df = df.copy()
-    # file_dir, file_name = os.path.split(__file__)
-    
-    df_litho = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'litho_info.csv'))
-    
-    # create the subplots; ncols equals the number of logs
-    if facies is None:
-        if len(logs) > 1:
-            fig, ax = plt.subplots(nrows=1, ncols=len(logs), figsize=figsize, sharey=True)
-            ax[0].set_ylabel("DEPTH(m/ft)")  # Set y-axis label for the first log track
-        
-        elif len(logs) == 1:
-            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize, sharey=True)
-            ax.set_ylabel("DEPTH(m/ft)")  # Set y-axis label for a single log track
-            ax = [ax]
-    else:
-        fig, ax = plt.subplots(nrows=1, ncols=len(logs)+1, figsize=figsize, sharey=True)
-    
-
-    fig.suptitle(f'{title}', size=15, y=1.)
-    
-    #generating random number of colors equal to total number of logs
-    cycol = cycle('bgyrcmk')
-    tot_logs = 0
-    for i in logs:
-        if isinstance(i, list):
-            tot_logs += len(i)
+    data = _window(df, depth, top, bottom)
+    layout = _log_tracks(data, depth, list(logs), top, bottom, title, figsize, extra=facies is not None,
+                         legend_rows=facies is not None)
+    if facies is not None:
+        table = _lithology_table()
+        values = data[facies]
+        if pd.api.types.is_numeric_dtype(values):
+            names = dict(zip(table['lith_num'], table['lith']))
+            unknown = set(values.dropna().unique()) - set(names)
+            values = values.map(names)
         else:
-            tot_logs += 1
-    color = [choice(next(cycol)) for i in range(tot_logs)]
-    np.random.shuffle(color)
-    
-    #filtering facies in lithofacies info dataframe that the number of identified lithology in `df`
-    if facies != None:
-        facies_label = df[facies].unique()
-        df_litho = df_litho[df_litho.lith.isin(facies_label)]
-
-        try:
-            if df[facies].dtype == 'object':
-                lithology = {li: li_num for li, li_num in zip(df_litho.lith, df_litho.lith_num)}
-                df[facies] = [lithology[i] for i in df[facies]]
-            elif df[facies].dtype == 'int':
-                pass
-        except:
-            raise ValueError(f'Unidentified facies in \'{facies}\'')
-    
-    # generating log tracks
-    for i, j in enumerate(logs):
-        if isinstance(j, list):
-            assert len(j) > 1, 'List of lists of curves must be greater than 1.'
-            np.random.shuffle(color)
-            
-            for ii, log_name in enumerate(j):
-                axes = ax[i]  # Initialize axes for each log
-                
-                if is_resistivity(log_name):
-                    # For resistivity, semilog plot
-                    axes.semilogx(df[log_name], df[depth], color=color[ii], linewidth=1.)
-                    axes.set_xticklabels([])
-                    axes.set_xticks([])
-                    
-                    
-                elif ii == 0: # and log_name != 'RT'
-                    # For non-resistivity, normal plot
-                    axes.plot(df[log_name], df[depth], color=color[ii], linewidth=1.)
-                    axes.set_xticklabels([])
-                    axes.set_xticks([])
-                    
-                elif ii >= 1: # or log_name != 'RT' 
-                    twin_axes = axes.twiny()
-                    twin_axes.plot(df[log_name], df[depth], color=color[ii], linewidth=1.)
-                    twin_axes.set_xticklabels([])
-                    twin_axes.set_xticks([]) 
-                    twin_axes.minorticks_on()
-                    twin_axes.xaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
-                    twin_axes.yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
-                    twin_axes.xaxis.label.set_color(color[ii])
-                    twin_axes.spines['top'].set_edgecolor(color[ii])
-                    twin_axes.spines["top"].set_position(("axes", 1.02))
-                    twin_axes.xaxis.set_ticks_position("top")
-                    twin_axes.xaxis.set_label_position("top")
-                    twin_axes.set_frame_on(True)
-                    twin_axes.patch.set_visible(False)
-                    # twin_axes.invert_yaxis()
-
-                axes.yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
-                axes.yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-                              
-
-                tracks = []
-
-                # np.random.shuffle(color)
-                for _ in range(len(j)):
-                    tracks.append(ax[i].twiny())
-
-                additive = 1.02
-                for _, axes in enumerate(tracks):
-
-                    axes.set_xlabel(logs[i][_])
-                    axes.set_ylim(top, bottom)
-
-                    if is_porosity(logs[i][_]):
-                        axes.set_xlim(df[logs[i][_]].max(), df[logs[i][_]].min())
-                        axes.set_xticks(list(np.linspace(df[logs[i][_]].min(), df[logs[i][_]].max(), num=4)))
-                    else:
-                        axes.set_xlim(df[logs[i][_]].min(), df[logs[i][_]].max())
-                        axes.set_xticks(list(np.linspace(df[logs[i][_]].min(), df[logs[i][_]].max(), num=4)))
-                    axes.minorticks_on()
-                    axes.grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
-                    axes.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-                    axes.xaxis.label.set_color(color[_])
-                    axes.tick_params(axis='x', colors=color[_])
-                    axes.spines['top'].set_edgecolor(color[_])
-                    axes.spines["top"].set_position(("axes", additive))
-                    axes.xaxis.set_ticks_position("top")
-                    axes.xaxis.set_label_position("top")
-                    axes.set_frame_on(True)
-                    axes.patch.set_visible(False)
-                    axes.invert_yaxis()
-                    
-                    additive += 0.06
-            
-        else:
-            np.random.shuffle(color[::-1])
-            log_name = j
-            axes = ax[i]
-            if is_resistivity(log_name):
-                # For resistivity, semilog plot
-                axes.semilogx(df[log_name], df[depth], color=color[i], linewidth=1.)
-                
-            else:
-                # For non-resistivity, normal plot
-                axes.plot(df[log_name], df[depth], color=color[i], linewidth=1.)
-
-            if is_porosity(log_name):
-                axes.invert_xaxis()
-
-            axes.set_title(log_name, pad=15)
-            axes.minorticks_on()
-            axes.set_ylim(top, bottom)
-            axes.grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
-            axes.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-            axes.xaxis.label.set_color(color[i])
-            axes.tick_params(axis='x', colors=color[i])
-            axes.spines['top'].set_edgecolor(color[i])
-            axes.spines["top"].set_position(("axes", 1.02))
-            axes.xaxis.set_ticks_position("top")
-            axes.xaxis.set_label_position("top")
-            axes.set_frame_on(True)
-            axes.patch.set_visible(False)
-            axes.invert_yaxis()
-            
-    #Plot lithology track 
-    if facies != None:
-        ax[-1].plot(df[facies], df[depth], color='black', linewidth=0.5)
-        ax[-1].set_xlabel("Lithology")
-        ax[-1].set_xlim(0, 1)
-        ax[-1].xaxis.label.set_color("black")
-        ax[-1].tick_params(axis='x', colors="black")
-        ax[-1].spines["top"].set_edgecolor("black")
-        ax[-1].xaxis.set_ticks_position("top")
-        ax[-1].xaxis.set_label_position("top")
-        ax[-1].spines["top"].set_position(("axes", 1.02))
-        ax[0].set_ylabel("DEPTH")  # Set y-axis label for the first log track when we have facies
-        
-        #adding legend of lithofacies
-        legend = []
-        for key, name, color, hatch in zip(df_litho.lith_num, df_litho.lith, df_litho.color, df_litho.hatch):
-            ax[-1].fill_betweenx(df[depth], 0, df[facies], where=(df[facies]==key),
-                         facecolor=color, hatch=hatch)
-            legend.append(Patch(facecolor=color, hatch=hatch, label=name))
-        ax[-1].set_xticks([0, 1])
-        ax[-1].legend(handles=legend, bbox_to_anchor=(1.05, 1),
-                         loc='upper left', borderaxespad=0.5)            
-   
-    plt.tight_layout(h_pad=1)
-    fig.subplots_adjust(wspace=0.0)
-
-    plt.show()
+            unknown = set(values.dropna().unique()) - set(table['lith'])
+        if unknown:
+            raise ValueError(f"Unidentified facies in '{facies}': {sorted(map(str, unknown))}")
+        order = [l for l in table['lith'] if l in set(values.dropna())]
+        colors = [st.LITHOLOGY_COLORS.get(l, c) for l, c in zip(table['lith'], table['color']) if l in order]
+        layout.facies(len(logs), data, depth, values.map({l: i for i, l in enumerate(order)}), colors, order, 'Lithology')
+    return layout.finish()
 
 
-def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom:float,  
-                  title:str='Log Plot', figsize:tuple=(8, 12)):
+@themed
+def plotLogs(df:pd.DataFrame, depth:str, logs:List[List[str]], top:float, bottom:float,
+             title:str='Log Plot', figsize:tuple=None) -> plt.Figure:
 
     r'''
-    
-    Plots overlayed/super-imposed log curves. 
+    Log tracks, with curves in a list sharing one track (overlay tracks)
 
     Parameters
     ----------
     df : pd.DataFrame
-        Dataframe
+        Log data
 
     depth : str
         Depth column
 
-    logs : list of lists/str
-        A list of logs curves to include in plot
-    
-    top : float
-        Minimum depth to zoom on
+    logs : list
+        Curves to plot; a list inside the list puts those curves in one track, e.g.
+        ['GR', 'RT', ['NPHI', 'RHOB']]. Neutron and density in one track use compatible scales
 
-    bottom : float
-        Maximum depth to zoom on
+    top, bottom : float
+        Depth range shown
 
     title : str
-        Plot title
+        Title of the plot
 
-    figsize : tuple
-        Size of plot
+    figsize : tuple default None
+        Size of the figure in inches; sized from the number of tracks when None
+
+    Returns
+    -------
+    matplotlib Figure
 
     Example
     -------
-    >>> plotLogs(well11, 'DEPTH', ['GR', 'RT', ['RHOB', 'NPHI']], top=well11.DEPTH.min(),
-    >>>                        bottom=well11.DEPTH.max(), figsize=(9, 12), title='15-9-F1A')
+    >>> from petrolib.plots import plotLogs
+    >>> plotLogs(df, 'DEPTH', ['GR', 'RT', ['NPHI', 'RHOB'], 'DT'], 3300, 3600, 'Volve')
+    '''
 
-    '''    
-    df = df.copy()
-
-    # create the subplots; ncols equals the number of logs
-    if len(logs) > 1:
-        fig, ax = plt.subplots(nrows=1, ncols=len(logs), figsize=figsize, sharey=True)
-        ax[0].set_ylabel("DEPTH(m/ft)")  # Set y-axis label for the first log track
-        
-    elif len(logs) == 1:
-        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize, sharey=True)
-        ax.set_ylabel("DEPTH(m/ft)")  # Set y-axis label for a single log track
-        ax = [ax]  # Wrap the single axis into a list
-        
-
-    fig.suptitle(f'{title}', size=15, y=1.)
-
-    # generating random number of colors equal to the total number of logs
-    cycol = cycle('kbgyrcm')
-    tot_logs = 0
-    for i in logs:
-        if isinstance(i, list):
-            tot_logs += len(i)
-        else:
-            tot_logs += 1
-    color = [choice(next(cycol)) for i in range(tot_logs)]
-    np.random.shuffle(color)
-    
-    # generating log tracks
-    for i, j in enumerate(logs):
-        if isinstance(j, list):
-            assert len(j) > 1, 'List of lists of curves must be greater than 1.'
-            np.random.shuffle(color)
-            
-            for ii, log_name in enumerate(j):
-                axes = ax[i]  # Initialize axes for each log
-                
-                if is_resistivity(log_name):
-                    # For resistivity, semilog plot
-                    axes.semilogx(df[log_name], df[depth], color=color[ii], linewidth=1.)
-                    axes.set_xticklabels([])
-                    axes.set_xticks([])
-                    
-                elif ii == 0: # and log_name != 'RT'
-                    # For non-resistivity, normal plot
-                    axes.plot(df[log_name], df[depth], color=color[ii], linewidth=1.)
-                    axes.set_xticklabels([])
-                    axes.set_xticks([])
-                    
-                elif ii >= 1: # or log_name != 'RT' 
-                    twin_axes = axes.twiny()
-                    twin_axes.plot(df[log_name], df[depth], color=color[ii], linewidth=1.)
-                    twin_axes.set_xticklabels([])
-                    twin_axes.set_xticks([]) 
-                    twin_axes.minorticks_on()
-                    twin_axes.xaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
-                    twin_axes.yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
-                    twin_axes.xaxis.label.set_color(color[ii])
-                    twin_axes.spines['top'].set_edgecolor(color[ii])
-                    twin_axes.spines["top"].set_position(("axes", 1.02))
-                    twin_axes.xaxis.set_ticks_position("top")
-                    twin_axes.xaxis.set_label_position("top")
-                    twin_axes.set_frame_on(True)
-                    twin_axes.patch.set_visible(False)
-                    # twin_axes.invert_yaxis()
-
-                axes.yaxis.grid(which='major', linestyle='-', linewidth=1, color='darkgrey')
-                axes.yaxis.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-                              
-
-                tracks = []
-
-                # np.random.shuffle(color)
-                for _ in range(len(j)):
-                    tracks.append(ax[i].twiny())
-
-                additive = 1.02
-                for _, axes in enumerate(tracks):
-
-                    axes.set_xlabel(logs[i][_])
-                    axes.set_ylim(top, bottom)
-
-                    if is_porosity(logs[i][_]):
-                        axes.set_xlim(df[logs[i][_]].max(), df[logs[i][_]].min())
-                        axes.set_xticks(list(np.linspace(df[logs[i][_]].min(), df[logs[i][_]].max(), num=4)))
-                    else:
-                        axes.set_xlim(df[logs[i][_]].min(), df[logs[i][_]].max())
-                        axes.set_xticks(list(np.linspace(df[logs[i][_]].min(), df[logs[i][_]].max(), num=4)))
-                    axes.minorticks_on()
-                    axes.grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
-                    axes.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-                    axes.xaxis.label.set_color(color[_])
-                    axes.tick_params(axis='x', colors=color[_])
-                    axes.spines['top'].set_edgecolor(color[_])
-                    axes.spines["top"].set_position(("axes", additive))
-                    axes.xaxis.set_ticks_position("top")
-                    axes.xaxis.set_label_position("top")
-                    axes.set_frame_on(True)
-                    axes.patch.set_visible(False)
-                    axes.invert_yaxis()
-                    
-                    additive += 0.06
-            
-        else:
-            np.random.shuffle(color[::-1])
-            log_name = j
-            axes = ax[i]
-            if is_resistivity(log_name):
-                # For resistivity, semilog plot
-                axes.semilogx(df[log_name], df[depth], color=color[i], linewidth=1.)
-                
-            else:
-                # For non-resistivity, normal plot
-                axes.plot(df[log_name], df[depth], color=color[i], linewidth=1.)
-
-            if is_porosity(log_name):
-                axes.invert_xaxis()
-
-            axes.set_title(log_name, pad=15)
-            axes.minorticks_on()
-            axes.set_ylim(top, bottom)
-            axes.grid(which='major', linestyle='-', linewidth=1.0, color='darkgrey')
-            axes.grid(which='minor', linestyle='-', linewidth=0.5, color='lightgrey')
-            axes.xaxis.label.set_color(color[i])
-            axes.tick_params(axis='x', colors=color[i])
-            axes.spines['top'].set_edgecolor(color[i])
-            axes.spines["top"].set_position(("axes", 1.02))
-            axes.xaxis.set_ticks_position("top")
-            axes.xaxis.set_label_position("top")
-            axes.set_frame_on(True)
-            axes.patch.set_visible(False)
-            axes.invert_yaxis()
-
-    plt.tight_layout(h_pad=1)
-    fig.subplots_adjust(wspace=0.0)
-
-    plt.show()
+    return _log_tracks(_window(df, depth, top, bottom), depth, list(logs), top, bottom, title, figsize).finish()
