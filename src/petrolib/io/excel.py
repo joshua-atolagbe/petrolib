@@ -18,10 +18,29 @@ _FORMATS = [(('top', 'bottom', 'base', 'gross', 'net', 'phih', 'hcpv'), '0.00'),
 
 def _number_format(column:str) -> str|None:
     name = column.lower()
+    if 'flag' in name:
+        #0/1 flags, e.g. PAY_NET_FLAG, keep the general format
+        return None
     for keys, fmt in _FORMATS:
         if any(k in name for k in keys):
             return fmt
     return None
+
+
+def _shown(value, fmt:str|None) -> str:
+
+    '''
+    Text of a cell as Excel shows it with number format `fmt`, to fit the column width
+    '''
+
+    if value is None:
+        return ''
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return str(value)
+    if fmt:
+        return f'{value:.{len(fmt.partition(".")[2])}f}'
+    #the general format shows at most about 10 significant digits
+    return f'{value:.10g}'
 
 
 def _style_sheet(ws, flag_col:str=None):
@@ -57,8 +76,9 @@ def _style_sheet(ws, flag_col:str=None):
                 cell.number_format = fmt
         ws.row_dimensions[row[0].row].height = 16
 
-    for i, column in enumerate(ws.columns, 1):
-        longest = max(len(str(c.value)) if c.value is not None else 0 for c in column)
+    for i, (column, fmt) in enumerate(zip(ws.columns, formats), 1):
+        #widths from the text shown, not the full precision value
+        longest = max(len(_shown(c.value, fmt)) for c in column)
         ws.column_dimensions[get_column_letter(i)].width = min(max(longest + 2, 8), 22)
     ws.freeze_panes = 'A2'
 
