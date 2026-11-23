@@ -69,8 +69,8 @@ def test_invasion_and_sp():
     assert np.allclose(pp.vshale_sp(np.array([-80., -40., 0., 10.]), -80, 0), [0, .5, 1, 1])
     k = 61 + .133 * 150
     assert np.isclose(pp.rw_from_sp(0., .2, 150), .85 * .2)                              #no SP deflection: Rw = Rmfe
-    assert np.isclose(pp.rw_from_sp(-k, .2, 150), .85 * .2 / 10)
-    assert np.isclose(pp.rw_from_sp(-65 - .24 * 60, .2, 60, unit='C'), .85 * .2 / 10)
+    assert np.isclose(pp.rw_from_sp(-k, .2, 150, rwe_to_rw=False), .85 * .2 / 10)
+    assert np.isclose(pp.rw_from_sp(-65 - .24 * 60, .2, 60, unit='C', rwe_to_rw=False), .85 * .2 / 10)
 
 
 def test_electrofacies(well):
