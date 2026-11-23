@@ -417,10 +417,17 @@ def test_chatterjee_matches_scipy():
     df.loc[:39, 'x'] = np.nan
     df.loc[250:, 'y'] = np.nan
     m = Correlation(df).corr('chatterjee')
-    for xc, yc in [('x', 'y'), ('y', 'x'), ('x', 'yt'), ('xt', 'yt')]:
+    for xc, yc in [('x', 'y'), ('y', 'x'), ('x', 'yt')]:
         ok = df[[xc, yc]].dropna()
         ref = stats.chatterjeexi(ok[xc].to_numpy(), ok[yc].to_numpy()).statistic
         assert np.isclose(m.loc[yc, xc], ref, atol=1e-6)                                  #row = Y, column = X
+    # ties in x are broken arbitrarily by scipy (its result changed between 1.16 and 1.18); petrolib
+    # keeps the data order, so compare with eq. (1.2) on a stable sort
+    ok = df[['xt', 'yt']].dropna()
+    ys = ok['yt'].to_numpy()[np.argsort(ok['xt'].to_numpy(), kind='stable')]
+    r, l = stats.rankdata(ys, method='max'), stats.rankdata(-ys, method='max')
+    ref = 1 - len(ys) * np.abs(np.diff(r)).sum() / (2 * (l * (len(ys) - l)).sum())
+    assert np.isclose(m.loc['yt', 'xt'], ref, atol=1e-6)
     # no ties: the simple form of eq. (1.1); xi(x, x) = (n - 2) / (n + 1)
     n = df['x'].notna().sum()
     assert np.isclose(m.loc['x', 'x'], (n - 2) / (n + 1), atol=1e-6)
