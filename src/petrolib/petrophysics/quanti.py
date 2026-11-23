@@ -208,7 +208,7 @@ class Quanti(object):
               'GR_Sand' : self._grSand,
               'Zone' : self._zone}
 
-        self._results = pd.DataFrame.from_records(df)
+        self._results = pd.DataFrame(df)
 
         #return result
 
@@ -739,7 +739,7 @@ class Quanti(object):
             'PHI Cutoff': self._por_cutoff
         }
 
-        df = pd.DataFrame.from_records(df, index=np.arange(0, 1)).T.rename({0:''}, axis=1).style.set_caption('Methods and Cutoffs').set_table_styles(self._styles)
+        df = pd.DataFrame(df, index=np.arange(0, 1)).T.rename({0:''}, axis=1).style.set_caption('Methods and Cutoffs').set_table_styles(self._styles)
 
         return df
 
