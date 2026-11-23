@@ -86,7 +86,7 @@ def pore_type(r35):
 
     r'''
     Pore throat class of an R35 radius: megaport (> 10 um), macroport (2-10), mesoport (0.5-2),
-    microport (0.1-0.5) or nanoport (< 0.1). NaN where R35 is NaN
+    microport (0.1-0.5) or nanoport (< 0.1). None where R35 is NaN or negative
     '''
 
     r = as_array(r35)
