@@ -8,14 +8,17 @@ import pandas as pd
 from ._utils import as_array
 
 
-def net_flags(vsh, phie, sw, vsh_cutoff:float, por_cutoff:float, sw_cutoff:float) -> pd.DataFrame:
+def net_flags(vsh, phie, sw, vsh_cutoff:float, por_cutoff:float, sw_cutoff:float, inclusive:bool=True) -> pd.DataFrame:
 
     r'''
     ROCK, RES and PAY flags (1 net, 0 not net). Each flag is a subset of the one before:
 
-        ROCK : Vsh < vsh_cutoff
-        RES  : ROCK and PHIE > por_cutoff
-        PAY  : RES  and SW < sw_cutoff
+        ROCK : Vsh <= vsh_cutoff
+        RES  : ROCK and PHIE >= por_cutoff
+        PAY  : RES  and SW <= sw_cutoff
+
+    A sample exactly at a cutoff passes, so a cutoff of 1 on Vsh or SW keeps every sample.
+    With inclusive=False the tests are strict (<, >, <). Missing values never pass
 
     Example
     -------
@@ -23,9 +26,14 @@ def net_flags(vsh, phie, sw, vsh_cutoff:float, por_cutoff:float, sw_cutoff:float
     '''
 
     v, p, s = as_array(vsh), as_array(phie), as_array(sw)
-    rock = v < vsh_cutoff
-    res = rock & (p > por_cutoff)
-    pay = res & (s < sw_cutoff)
+    if inclusive:
+        rock = v <= vsh_cutoff
+        res = rock & (p >= por_cutoff)
+        pay = res & (s <= sw_cutoff)
+    else:
+        rock = v < vsh_cutoff
+        res = rock & (p > por_cutoff)
+        pay = res & (s < sw_cutoff)
     index = vsh.index if isinstance(vsh, pd.Series) else None
     return pd.DataFrame({'ROCK_NET_FLAG': rock.astype(int), 'RES_NET_FLAG': res.astype(int),
                          'PAY_NET_FLAG': pay.astype(int)}, index=index)
@@ -35,14 +43,22 @@ def sample_thickness(depth:pd.Series, top:float, bot:float) -> pd.Series:
 
     r'''
     Thickness each sample represents: its depth +/- half the sampling step, clipped to the zone
-    [top, bot]. Gaps in the data carry no thickness, so they count as not net
+    [top, bot]. Gaps in the data carry no thickness, so they count as not net. Where samples are
+    closer than the step, a sample reaches only halfway to its neighbour, so none overlap
     '''
 
     depth = pd.Series(depth)
     if len(depth) < 2:
         return pd.Series(0., index=depth.index)
-    step = np.median(np.diff(np.sort(depth.to_numpy())))
-    return ((depth + step/2).clip(upper=bot) - (depth - step/2).clip(lower=top)).clip(lower=0)
+    order = np.argsort(depth.to_numpy(), kind='stable')
+    z = depth.to_numpy(dtype=float)[order]
+    step = np.median(np.diff(z))
+    #half the distance to each neighbour, at most half the step
+    half = np.minimum(np.diff(z) / 2, step / 2)
+    up, down = np.r_[half, step / 2], np.r_[step / 2, half]
+    h = np.empty(len(z))
+    h[order] = (np.minimum(z + up, bot) - np.maximum(z - down, top)).clip(min=0)
+    return pd.Series(h, index=depth.index)
 
 
 def weighted_mean(values, weights) -> float:
@@ -51,7 +67,10 @@ def weighted_mean(values, weights) -> float:
     Weighted mean that skips NaN values. NaN if there is no weight
     '''
 
-    values, weights = pd.Series(values), pd.Series(weights, index=pd.Series(values).index)
+    #two Series are aligned on their index, otherwise values and weights pair by position
+    aligned = isinstance(values, pd.Series) and isinstance(weights, pd.Series)
+    values = pd.Series(values)
+    weights = pd.Series(weights, index=values.index) if aligned else pd.Series(as_array(weights), index=values.index)
     ok = values.notna()
     w = weights[ok].sum()
     return (values[ok] * weights[ok]).sum() / w if w > 0 else np.nan
