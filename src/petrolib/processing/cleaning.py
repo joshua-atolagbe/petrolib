@@ -124,9 +124,8 @@ def process_data(df:pd.DataFrame, gr:str, rt:str, nphi:str, rhob:str, dt:Optiona
            ----------------------------------------------
     '''
     
-    df.replace(-999.00, np.nan, inplace=True)
-    
-    data = df.copy()
+    #null values as in petrolib.io.dlis; the input is left unchanged
+    data = df.replace([-999.25, -9999., -999., -9999.25], np.nan)
     
     if trim == 'max':
     
