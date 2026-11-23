@@ -6,9 +6,10 @@ from __future__ import annotations
 import re
 import numpy as np
 import pandas as pd
-from itertools import cycle
-from random import choice
 from matplotlib import pyplot as plt
+
+from . import style as st
+from .style import themed
 from pathlib import Path
 import lasio
 
@@ -78,6 +79,7 @@ def _extent(shape, lon:np.ndarray, lat:np.ndarray, pad:float=.05) -> tuple:
     return (x0 - dx, x1 + dx), (y0 - dy, y1 + dy)
 
 
+@themed
 def plotLoc(data:list[lasio.las.LASFile], shape_file:Path=None, area:str=None, figsize:tuple=(7, 7),
              label:list=None, withmap:bool=False, return_table:bool=False, basemap=None) -> pd.DataFrame|None:
 
@@ -151,9 +153,21 @@ def plotLoc(data:list[lasio.las.LASFile], shape_file:Path=None, area:str=None, f
     #save coordinate location in dataframe
     well_df = pd.DataFrame({'WELL_NAME':well_name, 'LAT':latitude,'LONG':longitude})
     a, b = np.array(longitude), np.array(latitude)
-    cycol = cycle('bgrcmk')
-    color = [choice(next(cycol)) for i in range(len(well_name))]
-    np.random.shuffle(color)
+
+    def wells(ax):
+        #well markers with names beside them, on a halo so they read over the basemap
+        import matplotlib.patheffects as pe
+        ax.scatter(a, b, s=46, color=st.SERIES[0], edgecolor=st.SURFACE, linewidths=1.3, zorder=5)
+        #neighbouring wells (in latitude order) take turns at the four corners, so close labels do not overlap
+        corners = [((7, 5), 'left', 'bottom'), ((-7, 5), 'right', 'bottom'), ((7, -5), 'left', 'top'),
+                   ((-7, -5), 'right', 'top')]
+        for k, j in enumerate(np.argsort(-b)):
+            offset, ha, va = corners[k % 4]
+            ax.annotate(well_name[j], (a[j], b[j]), xytext=offset, textcoords='offset points', ha=ha, va=va,
+                        fontsize=8.5, fontweight='semibold', color=st.INK, zorder=6,
+                        path_effects=[pe.withStroke(linewidth=3, foreground=st.SURFACE)])
+        ax.set_xlabel('Longitude (°)')
+        ax.set_ylabel('Latitude (°)')
 
     #plot well coordinates on map
     if withmap == True:
@@ -164,45 +178,38 @@ def plotLoc(data:list[lasio.las.LASFile], shape_file:Path=None, area:str=None, f
 
             assert area != None, f'Must supply area if shape_file is None'
             shape = _country(gpd, area)
-            title = f'WELL LOCATION - {area}'
 
         else:
 
             assert area == None, f'Area must be set to None'
             assert str(shape_file).endswith(('.shx', '.shp', '.dbf', '.prj')), f'Supply a valid shape file'
             shape = gpd.read_file(shape_file)
-            title = 'WELL LOCATION'
 
         #the well coordinates are longitude/latitude, so show the outline in the same system
         shape = shape.to_crs('EPSG:4326') if shape.crs is not None else shape.set_crs('EPSG:4326')
 
         fig, ax = plt.subplots(figsize=figsize)
-        plt.title(title)
-        shape.geometry.plot(ax=ax, color='#e3bccf', edgecolor='k', alpha=0.5, zorder=1)
-        plt.plot(a, b, 'b*', markersize=15)
-
-        for i in range(0,well_df.shape[0]):
-            plt.text(a[i], b[i], well_name[i], ha='right', size='large', color=color[i], va='bottom')
-
+        shape.geometry.plot(ax=ax, color='#f3efe4', edgecolor=st.INK2, linewidth=.8, alpha=.55, zorder=1)
+        wells(ax)
         xlim, ylim = _extent(shape, a, b)
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
         #CartoDB tiles now need an API key and OpenStreetMap blocks bulk tile clients
         ctx.add_basemap(ax, crs='EPSG:4326', source=ctx.providers.Esri.WorldTopoMap if basemap is None else basemap)
+        ax.grid(False)
 
     else:
 
-        assert area == None, 'Set area to None'
+        fig, ax = plt.subplots(figsize=figsize)
+        wells(ax)
+        #a degree of longitude is shorter than a degree of latitude away from the equator
+        ax.set_aspect(1 / np.cos(np.radians(np.nanmean(b))))
+        pad_x, pad_y = max(np.ptp(a), .01) * .15, max(np.ptp(b), .01) * .15
+        ax.set_xlim(a.min() - pad_x, a.max() + pad_x)
+        ax.set_ylim(b.min() - pad_y, b.max() + pad_y)
+        st.frame(ax)
 
-        fig=plt.figure(figsize=figsize)
-        plt.title('WELL LOCATION')
-        plt.grid(which='major', linestyle=':')
-
-        plt.plot(a, b, 'b*', markersize=15)
-
-        for i in range(0,well_df.shape[0]):
-            plt.text(a[i], b[i], well_name[i], ha='right', size='large', color=color[i], va='bottom')
-
+    st.title(ax, 'Well locations', ' · '.join(s for s in (area, f'{len(well_name)} wells') if s))
 
     if return_table:
 
