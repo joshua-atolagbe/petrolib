@@ -54,7 +54,7 @@ def elastic_moduli(rhob, dtc, dts, unit:str='us/ft') -> pd.DataFrame:
     >>> mech = elastic_moduli(df['RHOB'], df['DT'], df['DTS'])
     '''
 
-    rho = as_array(rhob) * 1000.
+    rho = np.atleast_1d(as_array(rhob)) * 1000.              #1-d so scalars give a one-row frame
     vp, vs = as_array(velocity(dtc, unit)), as_array(velocity(dts, unit))
     with np.errstate(divide='ignore', invalid='ignore'):
         g = rho * vs**2
@@ -62,7 +62,7 @@ def elastic_moduli(rhob, dtc, dts, unit:str='us/ft') -> pd.DataFrame:
         pr = (vp**2 - 2 * vs**2) / (2 * (vp**2 - vs**2))
         out = {'VP': vp, 'VS': vs, 'VPVS': vp / vs, 'AI': vp * rho / 1000., 'G': g / 1e9, 'K': k / 1e9,
                'E': 2 * g * (1 + pr) / 1e9, 'PR': pr}
-    index = rhob.index if isinstance(rhob, pd.Series) else None
+    index = next((x.index for x in (rhob, dtc, dts) if isinstance(x, pd.Series)), None)
     return pd.DataFrame(out, index=index)
 
 
