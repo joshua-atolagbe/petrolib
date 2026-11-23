@@ -43,6 +43,5 @@ def solve_increasing(f, lo, hi=1., n_iter:int=60) -> np.ndarray:
         below = f(mid) < 0
         lo = np.where(below, mid, lo)
         hi = np.where(below, hi, mid)
-    x = .5 * (lo + hi)
-    x[nan] = np.nan
-    return x
+    #np.where also works when every input is a float and x is a 0-d array
+    return np.where(nan, np.nan, .5 * (lo + hi))
