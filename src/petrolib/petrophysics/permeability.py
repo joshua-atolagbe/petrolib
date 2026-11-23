@@ -2,7 +2,8 @@
 Permeability from porosity and irreducible water saturation (mD)
 
 The equations need the irreducible water saturation. Above the transition zone SW is close
-to it; elsewhere estimate it, e.g. with `swirr_buckles`. Calibrate the constants to core
+to it; elsewhere estimate it, e.g. with `swirr_buckles`. Calibrate the constants to core.
+Negative PHIE gives NaN
 
 '''
 import numpy as np
@@ -14,6 +15,12 @@ PERMEABILITY_METHODS = ('timur', 'coates', 'morris_biggs')
 
 def _swirr(swirr, floor:float):
     return np.clip(as_array(swirr), floor, None)
+
+
+def _phi(phie):
+    #negative porosity is invalid: NaN, not a positive k from the even powers
+    phi = as_array(phie)
+    return np.where(phi < 0, np.nan, phi)
 
 
 def timur(phie, swirr, floor:float=.05):
@@ -39,7 +46,7 @@ def timur(phie, swirr, floor:float=.05):
     >>> k = timur(df['PHIE'], df['SW'])
     '''
 
-    k = 8581. * pow(as_array(phie), 4.4) / pow(_swirr(swirr, floor), 2)
+    k = 8581. * pow(_phi(phie), 4.4) / pow(_swirr(swirr, floor), 2)
     return like(np.where(k < 0, 0., k), phie, swirr)
 
 
@@ -50,7 +57,8 @@ def coates(phie, swirr, c:float=100., floor:float=.05):
 
         sqrt(K) = c PHIE^2 (1 - SWIRR) / SWIRR
 
-    c = 100 is the common form. Some references use K = 5000 PHIE^4 ((1 - SWIRR)/SWIRR)^2, i.e. c = 70.7
+    c = 100 is the free-fluid (Timur-Coates) form K = (PHI/10)^4 (FFI/BVI)^2 with PHI in percent.
+    Schlumberger chart K-4 (after Coates and Dumanoir, 1974) uses c = 70
 
     Parameters
     ----------
@@ -69,7 +77,7 @@ def coates(phie, swirr, c:float=100., floor:float=.05):
     '''
 
     s = _swirr(swirr, floor)
-    k = (c * as_array(phie)**2 * (1 - s) / s)**2
+    k = (c * _phi(phie)**2 * (1 - s) / s)**2
     return like(np.where(s >= 1, 0., k), phie, swirr)
 
 
@@ -97,7 +105,7 @@ def morris_biggs(phie, swirr, fluid:str='oil', floor:float=.05):
     '''
 
     c = {'oil': 250., 'gas': 79.}[fluid]
-    return like((c * as_array(phie)**3 / _swirr(swirr, floor))**2, phie, swirr)
+    return like((c * _phi(phie)**3 / _swirr(swirr, floor))**2, phie, swirr)
 
 
 def wyllie_rose(phie, swirr, c:float, x:float, y:float, floor:float=.05):
@@ -112,14 +120,14 @@ def wyllie_rose(phie, swirr, c:float, x:float, y:float, floor:float=.05):
     >>> k = wyllie_rose(df['PHIE'], df['SW'], c=93, x=2.2, y=1)     # close to Timur
     '''
 
-    return like((c * as_array(phie)**x / _swirr(swirr, floor)**y)**2, phie, swirr)
+    return like((c * _phi(phie)**x / _swirr(swirr, floor)**y)**2, phie, swirr)
 
 
 def swirr_buckles(phie, buckles:float):
 
     r'''
     Irreducible water saturation from a Buckles number (constant bulk volume water at
-    irreducible saturation, PHIE * SWIRR), clipped to [0, 1]
+    irreducible saturation, PHIE * SWIRR), clipped to [0, 1]. NaN where PHIE < 0
 
         SWIRR = buckles / PHIE
 
@@ -131,7 +139,7 @@ def swirr_buckles(phie, buckles:float):
     >>> swirr = swirr_buckles(df['PHIE'], .04)
     '''
 
-    phi = as_array(phie)
+    phi = _phi(phie)
     with np.errstate(divide='ignore'):
         return like(np.clip(buckles / phi, 0, 1), phie)
 
