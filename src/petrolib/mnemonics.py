@@ -86,8 +86,8 @@ _POROSITY = {'PHIE', 'PHIT', 'PHID', 'PHIN', 'PHIS', 'PHIND', 'PHI', 'POR', 'PHI
 _UNIT_FIXES = {
     'NPHI': ({'%', 'pu', 'p.u.', 'percent', 'pct', 'v/v%', 'pu(ls)', 'pu(ss)'}, .01, 'v/v'),
     'RHOB': ({'kg/m3', 'kg/m^3', 'kg/m**3'}, .001, 'g/cm3'),
-    'DT':   ({'us/m', 'µs/m', 'usec/m', 'uspm'}, 1 / 3.28084, 'us/ft'),
-    'DTS':  ({'us/m', 'µs/m', 'usec/m', 'uspm'}, 1 / 3.28084, 'us/ft'),
+    'DT':   ({'us/m', 'µs/m', 'μs/m', 'usec/m', 'uspm'}, 1 / 3.28084, 'us/ft'),
+    'DTS':  ({'us/m', 'µs/m', 'μs/m', 'usec/m', 'uspm'}, 1 / 3.28084, 'us/ft'),
 }
 
 
