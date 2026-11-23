@@ -4,21 +4,21 @@ Quickstart
 import necessaries
 ::
     from pathlib import Path
-    from petrolib import procs
-    from petrolib import file_reader as fr
-    from petrolib.workflow import Quanti
-    from petrolib.plots import tripleCombo, Zonation, plotLog
+    from petrolib.io import load_las, Zonation
+    from petrolib.processing import process_data
+    from petrolib.petrophysics import Quanti
+    from petrolib.plots import tripleCombo, plotLog
 
 Load data
 ::
     well_path = Path(r"./15_9-19.las")
     tops_path = Path(r'./well tops.csv')
 
-    df, las = fr.load_las(well_path, return_csv=True, curves=['GR', 'RT', 'NPHI', RHOB'])
+    df, las = load_las(well_path, return_csv=True, curves=['GR', 'RT', 'NPHI', 'RHOB'])
 
 Process data
 ::
-    df = procs.process_data(df, 'GR', 'RT', 'NPHI', 'RHOB')
+    df = process_data(df, 'GR', 'RT', 'NPHI', 'RHOB')
 
 Triple combo
 ::
@@ -30,7 +30,7 @@ Zone plot
 ::
     zones = Zonation(df, path=tops_path)
     zones.plotZone('DEPTH', ['GR', 'RT', 'RHOB', 'NPHI', 'CALI'], 3300, 3600, '15_9-19')
-    plotLog('DEPTH', ['GR', 'RT', 'RHOB', 'NPHI', 'CALI'], 3300, 3600, '15_9-19')
+    plotLog(df, 'DEPTH', ['GR', 'RT', 'RHOB', 'NPHI', 'CALI'], 3300, 3600, '15_9-19')
 
 Calling the zonation object to extra info
 ::

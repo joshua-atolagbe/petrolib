@@ -1,1 +1,2 @@
-include src/petrolib/data/litho_info.csv
+include src/petrolib/data/*.csv
+include LICENSE

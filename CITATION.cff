@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If petrolib helps your work, please cite it as below."
+type: software
+title: "Petrolib: A Lightweight Package for Petrophysical Evaluation"
+authors:
+  - family-names: Atolagbe
+    given-names: Joshua
+version: 2.0.0
+license: MIT
+repository-code: "https://github.com/joshua-atolagbe/petrolib"
+url: "https://petrolib.readthedocs.io"
+keywords:
+  - petrophysics
+  - well logs
+  - formation evaluation
+  - python
