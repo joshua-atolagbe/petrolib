@@ -9,6 +9,9 @@ petrophysics  Buckles, Hingle, Winland, RQI, Lorenz, M-N, MID, Thomas-Stieber, m
               cutoff, pay summary, volume and uncertainty plots
 geomechanics  mechanical property tracks, pressure against depth and rock physics cross plots
 maps          well locations (needs 'petrolib[maps]' for basemaps)
+workflow      the Quanti steps (shale volume, porosity, saturation, permeability, net flags)
+tracks        the log track layout shared by the log plots
+style         colours, fonts and the plot theme; style.set_theme(False) plots with your own matplotlib style
 
 Example
 -------
@@ -23,6 +26,8 @@ from .petrophysics import (bucklesPlot, winlandPlot, rqiPlot, lorenzPlot, mnPlot
                            histogramPlot, paySummaryPlot)
 from .geomechanics import mechanicalPlot, pressurePlot, rockPhysicsPlot
 from .maps import plotLoc
+from .workflow import quantiPlot
+from . import style
 
 __all__ = [
     'plotFaciesZoneCombo', 'tripleCombo', 'plotLog', 'plotZoneCombo', 'plotLogFacies', 'plotLogs',
@@ -30,7 +35,7 @@ __all__ = [
     'bucklesPlot', 'winlandPlot', 'rqiPlot', 'lorenzPlot', 'mnPlot', 'midPlot', 'thomasStieberPlot',
     'cutoffPlot', 'volumePlot', 'swUncertaintyPlot', 'hinglePlot', 'movableHydrocarbonPlot', 'histogramPlot',
     'paySummaryPlot', 'mechanicalPlot', 'pressurePlot', 'rockPhysicsPlot',
-    'plotLoc',
+    'plotLoc', 'quantiPlot', 'style',
 ]
 
 
