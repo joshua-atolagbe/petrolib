@@ -16,8 +16,11 @@ def minerals() -> pd.DataFrame:
 
     r'''
     Typical log responses of common minerals and fresh water: RHOB (g/cc), NPHI (fraction,
-    limestone units), DT (us/ft) and PEF (b/e). Tool and chart values vary; edit them for your
-    tools before relying on them
+    limestone units, CNL tool), DT (us/ft) and PEF (b/e). NPHI and PEF follow the Schlumberger
+    Log Interpretation Charts (2013), Appendix B. RHOB is the matrix density used in density
+    porosity for quartz, calcite and dolomite (the log reads 2.64, 2.71 and 2.85) and the log
+    value for the evaporites. Tool and chart values vary; edit them for your tools before
+    relying on them
 
     Example
     -------
@@ -63,14 +66,39 @@ def rhomaa(rhob, phit, rho_fluid:float=1.):
     return like((as_array(rhob) - phi * rho_fluid) / (1 - phi), rhob, phit)
 
 
-def dtmaa(dt, phit, dt_fluid:float=189.):
+def dtmaa(dt, phit, dt_fluid:float=189., method:str='raymer'):
 
     r'''
-    Apparent matrix slowness, DTMAA = (DT - PHIT dt_fluid) / (1 - PHIT)
+    Apparent matrix slowness (us/ft)
+
+        raymer: DTMAA = (1 - PHIT)^2 / (1/DT - PHIT/dt_fluid)     (Raymer-Hunt-Gardner, as in the
+                Schlumberger MID chart Lith-9: DT 82 us/ft and PHIT 0.30 give 46 us/ft)
+        wyllie: DTMAA = (DT - PHIT dt_fluid) / (1 - PHIT)          (time average)
+
+    NaN where the Raymer denominator is not positive
+
+    Parameters
+    ----------
+    dt, phit : array-like
+        Compressional slowness (us/ft) and total porosity
+
+    dt_fluid : float default 189
+        Slowness of the pore fluid (us/ft)
+
+    method : str default 'raymer'
+        'raymer' or 'wyllie'
     '''
 
-    phi = as_array(phit)
-    return like((as_array(dt) - phi * dt_fluid) / (1 - phi), dt, phit)
+    phi, t = as_array(phit), as_array(dt)
+    if method == 'raymer':
+        with np.errstate(divide='ignore', invalid='ignore'):
+            d = 1 / t - phi / dt_fluid
+            out = np.where(d > 0, (1 - phi)**2 / np.where(d > 0, d, 1.), np.nan)
+    elif method == 'wyllie':
+        out = (t - phi * dt_fluid) / (1 - phi)
+    else:
+        raise ValueError("method must be 'raymer' or 'wyllie'")
+    return like(out, dt, phit)
 
 
 def umaa(pef, rhob, phit, u_fluid:float=.398):
@@ -115,7 +143,10 @@ def multimineral(df:pd.DataFrame, components:dict, logs:list=None, uncertainties
              'Illite': {'RHOB': 2.52, 'NPHI': .30, 'GR': 150},
              'Water':  {'RHOB': 1.00, 'NPHI': 1.00, 'GR': 0}}
 
-        Use at most one more component than logs. `minerals()` has typical mineral values
+        Use at most one more component than logs. `minerals()` has typical mineral values.
+        PEF does not mix linearly by volume; when PEF is used, the log and the component
+        responses are converted to the volumetric photoelectric factor U = PEF rho_e, which does,
+        with rho_e = (RHOB + 0.1883) / 1.0704 from the RHOB of the sample and of each component
 
     logs : list default None
         Logs to use. Default: the columns of `df` that every component has a response for
@@ -146,10 +177,19 @@ def multimineral(df:pd.DataFrame, components:dict, logs:list=None, uncertainties
     if not logs:
         raise ValueError('No log of `df` has a response for every component')
     errors = {**DEFAULT_UNCERTAINTY, **(uncertainties or {})}
-    w = np.array([1 / errors.get(l, 1.) for l in logs])
     A = np.array([[components[c][l] for c in names] for l in logs], dtype=float)
-
     X = df[logs].to_numpy(dtype=float)
+    if 'PEF' in logs:
+        #solve on U = PEF rho_e, which mixes by volume; the PEF error scales by rho_e too
+        if 'RHOB' not in df or not all('RHOB' in components[c] for c in names):
+            raise ValueError('PEF needs RHOB in `df` and in every component, to convert it to U = PEF rho_e')
+        j = logs.index('PEF')
+        rho_e = (df['RHOB'].to_numpy(dtype=float) + .1883) / 1.0704
+        X[:, j] = X[:, j] * rho_e
+        A[j] = A[j] * (np.array([components[c]['RHOB'] for c in names], dtype=float) + .1883) / 1.0704
+        errors['PEF'] = errors['PEF'] * float(np.nanmedian(rho_e))
+    w = np.array([1 / errors.get(l, 1.) for l in logs])
+
     volumes = np.full((len(df), len(names)), np.nan)
     misfit = np.full(len(df), np.nan)
     for i, row in enumerate(X):
