@@ -35,7 +35,8 @@ def test_new_crossplots_return_axes(evaluated, plot, kwargs):
 
 def test_track_plots(evaluated):
     sens = pp.cutoff_sensitivity(evaluated, cutoff='sw', values=np.arange(.2, 1, .1))
-    assert isinstance(plots.cutoffPlot(sens, right='HCPV'), plt.Axes)
+    net, hcpv = plots.cutoffPlot(sens, right='HCPV')                       #two panels, no second y axis
+    assert isinstance(net, plt.Axes) and isinstance(hcpv, plt.Axes) and net.get_shared_x_axes().joined(net, hcpv)
     vol = pp.multimineral(evaluated, {'Quartz': {'RHOB': 2.65, 'GR': 20}, 'Illite': {'RHOB': 2.55, 'GR': 150},
                                       'Water': {'RHOB': 1., 'GR': 0}})
     assert isinstance(plots.volumePlot(vol, evaluated['DEPTH']), plt.Axes)
@@ -59,9 +60,9 @@ def test_facies_combo_with_facies_labels(evaluated):
     plots.plotFaciesZoneCombo(fac, 'DEPTH', 'GR', 'RT', 'NPHI', 'RHOB', 'litho', 1000, 1150, ['#ffff00', '#bebebe'],
                               sorted(fac['litho'].unique()), [1010.], [1100.], ['A'], limit='left', fill='right',
                               palette_op='rainbow')
-    facies_track = plt.gcf().axes[4]
-    assert list(facies_track.images[0].get_extent()) == [0, 1, fac['DEPTH'].max(), fac['DEPTH'].min()]   #in depth
-    assert tuple(facies_track.get_ylim()) == (1150, 1000)
+    facies_track = plt.gcf().petrolib_tracks and [a for a in plt.gcf().axes if a.get_ylim() == (1150, 1000)][4]
+    ys = np.concatenate([p.vertices[:, 1] for c in facies_track.collections for p in c.get_paths()])
+    assert facies_track.collections and 1000 - 5 <= ys.min() and ys.max() <= 1150 + 5        #drawn in depth
 
 
 def test_more_analytical_plots(evaluated):
@@ -69,7 +70,7 @@ def test_more_analytical_plots(evaluated):
     for ax in [plots.hinglePlot(df, rw=.05, hue='VShale'), plots.movableHydrocarbonPlot(df, hue='PHIE'),
                plots.histogramPlot(df, 'PHIE', by='Zone', cutoff=.1), plots.histogramPlot(df, 'RT', log=True)]:
         assert isinstance(ax, plt.Axes)
-        assert all(line.get_linestyle() == ':' for line in ax.get_xgridlines() + ax.get_ygridlines())   #dotted grid
+        assert all(line.get_linestyle() == '-' for line in ax.get_xgridlines() + ax.get_ygridlines())   #hairline grid
     summary = pd.DataFrame({'Zones': ['A'] * 3 + ['B'] * 3, 'Flag Name': ['ROCK', 'RES', 'PAY'] * 2,
                             'Gross': [90.] * 3 + [80.] * 3, 'Net': [80., 60., 40., 70., 50., 20.]})
     assert isinstance(plots.paySummaryPlot(summary), plt.Axes)
