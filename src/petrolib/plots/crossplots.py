@@ -3,23 +3,44 @@ Neutron-density and Pickett cross plots
 
 '''
 from __future__ import annotations
-import seaborn as sns
 import numpy as np
 import pandas as pd
-from itertools import cycle
-from random import choice
 from matplotlib import pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
+from matplotlib.ticker import FuncFormatter
 
+from . import style as st
+from .style import themed
+from .petrophysics import _axes, _scatter, _style, _ref
+
+
+def _hue_type(df:pd.DataFrame, hue:str, color_code:str):
+    #'num' or 'cat' as given, inferred from the column when only hue is given
+    if hue is None:
+        return None
+    if color_code is not None:
+        return color_code
+    return 'num' if pd.api.types.is_numeric_dtype(df[hue]) else 'cat'
+
+
+def _colored(ax, df, x, y, hue, code, cmap):
+    if code == 'cat':
+        _scatter(ax, df.assign(**{hue: df[hue].astype(str)}), x, y, hue)
+    elif code == 'num':
+        _scatter(ax, df, x, y, hue, cmap)
+    else:
+        _scatter(ax, df, x, y)
+
+
+@themed
 def crossPlot(df:pd.DataFrame, column_x:str, column_y:str, hue:str=None,
-               color_code:str=None, figsize:tuple=(20,7), rhob_fluid:float=1., res_name:str=None, cmap='viridis'):  
+              color_code:str=None, figsize:tuple=(7, 6), rhob_fluid:float=1., res_name:str=None, cmap=None, ax=None):
 
     r'''
-    Plots the cross plot relationship of density against porosity on compatible scales
-    to facilitate in identification of reservoir type and its fluid type.
+    Neutron-density cross plot with the sandstone, limestone and dolomite lines on limestone-compatible
+    scales, labelled in porosity, for reservoir and fluid type identification. Gas moves points up
+    and to the left of the lines, shale down and to the right
 
-    This code was initially written by Yohanes Nuwara but was modified to give
-    the resulting plot a more classic and pretty view.
+    The matrix lines are fits to the neutron-density chart for a CNL tool, after code by Yohanes Nuwara
 
     Parameters
     ----------
@@ -27,213 +48,154 @@ def crossPlot(df:pd.DataFrame, column_x:str, column_y:str, hue:str=None,
         Dataframe of well
 
     column_x : str
-        Porosity column 
-    
-    column_y : str
-        Density column
+        Neutron porosity column (v/v, limestone units)
 
-    hue : str 
-        Column to color code the scatter plot by
-        
+    column_y : str
+        Bulk density column (g/cm3)
+
+    hue : str
+        Column to color code the points by
+
     color_code : str default None
-        Color code typing. If 'num', arg `hue` must be a continuous column.
-        If 'cat', argument `hue` must be a categorical column
+        'num' for a continuous `hue`, 'cat' for a categorical one; inferred from the column when None
 
     figsize : tuple
         Size of plot
 
     rhob_fluid : float, default 1.0
         Fluid density
-    
+
     res_name : str
-        Reservoir name
+        Reservoir name, shown under the title
 
     cmap : str
-        color map 
+        Colour map for a continuous `hue`
+
+    ax : matplotlib Axes default None
+        Axes to draw on
 
     Returns
     -------
-    A plot showing the neutron-density cross plot 
+    matplotlib Axes
 
     Example
     -------
     >>> from petrolib.plots import crossPlot
-    >>> crossPlot(df=df, column_x='NPHI', column_y='RHOB', res_name='RES_A', color_code='num', hue='GR') 
-    
+    >>> crossPlot(df=df, column_x='NPHI', column_y='RHOB', res_name='RES_A', hue='GR')
     '''
 
-    plt.figure(figsize=figsize)
-    # plt.style.use('classic')
-    plt.grid(True)
-    plt.minorticks_on()
-    plt.grid(which='major', linestyle=':', linewidth='1', color='black')
+    ax = _axes(ax, figsize)
+    lsX = np.arange(0, 0.45001, 0.05)
+    ssCnlX = np.array([np.roots([0.222, 1.021, 0.039 - i])[1] for i in lsX])
+    dolCnlX = np.array([np.roots([1.40, 0.389, -0.01259 - i])[1] for i in lsX])
+    matrix = {'Sandstone': (ssCnlX, 2.65), 'Limestone': (lsX, 2.71), 'Dolomite': (dolCnlX, 2.87)}
+    lines = {name: (x, (rhob_fluid - rho) * lsX + rho) for name, (x, rho) in matrix.items()}
 
-    lsX = np.arange(0, 0.55, 0.05)
+    #iso-porosity lines, then the matrix lines with a dot at every 0.05 porosity
+    for k in range(len(lsX)):
+        _ref(ax, [lines[n][0][k] for n in lines], [lines[n][1][k] for n in lines], color=st.GRID, lw=.8, zorder=1)
+    colors = dict(zip(matrix, st.SERIES[:3]))
+    for name, (x, y) in lines.items():
+        ax.plot(x, y, color=colors[name], lw=1.6, zorder=4, solid_capstyle='round')
+        ax.scatter(x, y, s=14, color=colors[name], edgecolor=st.SURFACE, linewidths=.8, zorder=5)
+        st.line_label(ax, x[-2] + .015, y[-2] + .015, name, color=st.INK, ha='left', va='top', fontsize=8,
+                      fontweight='semibold')
+    for p, x, y in zip(lsX, *lines['Limestone']):
+        if round(p * 100) % 10 == 0:
+            st.line_label(ax, x - .008, y + .02, f'{p:.1f}', color=st.INK2, ha='right', va='top', fontsize=7)
 
-    ssSnpX = np.empty((np.size(lsX),0), float)
-    dolSnpX = np.empty((np.size(lsX),0), float)
-    ssCnlX = np.empty((np.size(lsX),0), float)
-    dolCnlX = np.empty((np.size(lsX),0), float)
-
-    for i in np.nditer(lsX):
-        ssSnpX = np.append(ssSnpX, np.roots([0.222, 1.021, 0.024 - i])[1])
-        dolSnpX = np.append(dolSnpX, np.roots([0.6, 0.749, -0.00434 - i])[1])
-        ssCnlX = np.append(ssCnlX, np.roots([0.222, 1.021, 0.039 - i])[1])
-        dolCnlX = np.append(dolCnlX, np.roots([1.40, 0.389, -0.01259 - i])[1])
-
-    densma_Ls = 2.71; densma_Ss = 2.65; densma_Dol = 2.87 #densma: density matrix
-
-    denLs = (rhob_fluid - densma_Ls) * lsX + densma_Ls
-    denSs = (rhob_fluid - densma_Ss) * lsX + densma_Ss
-    denDol = (rhob_fluid - densma_Dol) * lsX + densma_Dol
-
-    # plot the sand, limestone, and dolomite line 
-    plt.plot(ssCnlX, denSs, '.-', color='blue', markersize=10, label = 'Sandstone',linewidth=2.)
-    plt.plot(lsX, denLs, '.-', color='green', markersize=10, label = 'Limestone',linewidth=2.)
-    plt.plot(dolCnlX, denDol, '.-', color='red', markersize=10, label = 'Dolomite',linewidth=2.)
-    plt.plot([ssCnlX, lsX, dolCnlX], [denSs, denLs, denDol], '--', color='black', linewidth=2.)
-
-    #ticks added to the opposite side of the plot
-    plt.tick_params(bottom=True, top=True,
-            left=True, right=True, labelbottom=True,
-            labeltop=True, labelleft=True, labelright=True)
-
-    if color_code == 'num':
-
-        # plot data with color of the continuous variable defined (depth, vsh, etc.)
-
-        plt.scatter(df[column_x], df[column_y], c=df[hue], cmap=cmap)
-
-        plt.colorbar(label=hue, orientation='vertical', fraction=.057, pad=0.05)
+    _colored(ax, df, df[column_x].to_numpy(float), df[column_y].to_numpy(float), hue,
+             _hue_type(df, hue, color_code), cmap)
+    y = df[column_y].to_numpy(float)
+    ax.set_xlim(-.1, .6)
+    ax.set_ylim(max(3., np.nanpercentile(y, 99.8) + .05), min(1.9, np.nanpercentile(y, .2) - .05))
+    _style(ax, 'Neutron–density cross plot', f'{column_x} (v/v, limestone units)', f'{column_y} (g/cm³)',
+           ' · '.join(s for s in (res_name, f'{int(np.isfinite(y).sum()):,} samples') if s))
+    return ax
 
 
-    elif color_code == 'cat':
-
-        # plot data with color of each unique value in the catgorical column
-        sns.scatterplot(data=df, x=column_x, y=column_y, hue=hue, ec=None)
-
-    elif color_code == None:
-
-        #plot with no coloring
-        cycol = cycle('bgrcmk')
-        plt.scatter(df[column_x], df[column_y], c=choice(next(cycol)))
-
-    plt.legend(loc='upper left')
-    plt.title(f'Neutron-Density Cross Plot of RES {res_name}', size=20, pad=20)
-    plt.xlim(-0.15, .60)
-    plt.ylim(3, 1.3)
-    plt.xlabel(r'$\phi (m3/m3) $',fontsize=18); plt.ylabel(r'$\rho (g/cm3)$', fontsize=18)
-    plt.show()
-
-
+@themed
 def picketPlot(df:pd.DataFrame, rt:str='RT', por:str='NPHI', rwa:float=0.018,
-                a:float=1., m:float=1.8, n:float=2., res_name:str=None, figsize:tuple=(20, 8),
-               hue:str=None, color_code:str=None, cmap=None):
-    
-    r'''
+               a:float=1., m:float=1.8, n:float=2., res_name:str=None, figsize:tuple=(7, 6),
+               hue:str=None, color_code:str=None, cmap=None, ax=None):
 
-    Plot Pickett plot based on a pattern recognition approach to solving Archie’s equation. The resistivity
-    and porosity logs are plotted on a logarithmic scales to evaluate formation characteristics of conventional, granular reservoirs.
-    Read more here: https://wiki.seg.org/wiki/Pickett_plot
+    r'''
+    Pickett plot: porosity against resistivity on log scales, with Archie lines of constant water
+    saturation. Water-bearing points fall on the SW = 1 line, whose slope is -1/m and whose
+    intercept at porosity 1 is a Rw. Read more here: https://wiki.seg.org/wiki/Pickett_plot
 
     Parameters
     ----------
     df : pd.DataFrame
         Dataframe
 
-    rt : str 
+    rt : str
         Resistivity column
 
-    rwa : float default 0.03
-        Formation water resisitivity
+    por : str
+        Porosity column
 
-    a : float default, 1. 
-        Turtuosity factor
+    rwa : float default 0.018
+        Formation water resistivity
 
-    m : float default 2.
-        Cementation factor
+    a : float default 1
+        Tortuosity factor
 
-    n : float default 2.
+    m : float default 1.8
+        Cementation exponent
+
+    n : float default 2
         Saturation exponent
 
-    res_name : str 
-        Reservoir/Zone name
+    res_name : str
+        Reservoir/zone name, shown under the title
 
     figsize : tuple
         Size of plot
 
-    hue : str 
-        Column to color code the scatter plot by.
-        
+    hue : str
+        Column to color code the points by
+
     color_code : str default None
-        Color code typing. If 'num', arg `hue` must be a continuous column
-        If 'cat', argument `hue` must be a categorical column
-        if None, there is no color coding 
-    
+        'num' for a continuous `hue`, 'cat' for a categorical one; inferred from the column when None
+
     cmap : str
-        Color map option 
+        Colour map for a continuous `hue`
+
+    ax : matplotlib Axes default None
+        Axes to draw on
+
+    Returns
+    -------
+    matplotlib Axes
 
     Example
     -------
     >>> from petrolib.plots import picketPlot
-    >>> picketPlot(df, color_code='num', hue='GR', cmap='rainbow')
-
-    >>> from petrolib.plots import picketPlot
-    >>> picketPlot(df, rt='RT', por='NPHI') 
-    
+    >>> picketPlot(df, rt='RT', por='PHIE', rwa=.03, m=2, hue='VShale')
     '''
-   
-    plt.figure(figsize=figsize)
-    # plt.style.use('classic')
-    plt.grid(True)
-    plt.minorticks_on()
-    plt.grid(which='major', linestyle=':', linewidth='1.5', color='black')
-    plt.grid(which='minor', linestyle=':', linewidth='1', color='black')    
-    plt.title(f'Pickett Plot of RES {res_name}', size=20, pad=17)
-   
-    if color_code == None:
-        assert hue == None and cmap ==None, 'Set hue and cmap to None'
-        plt.loglog(df[rt], df[por], 'bo')
-        
-    elif color_code=='num':
-        #for continuous or numerical column
-        assert hue != None and cmap !=None, 'Set hue and cmap values'
-        plt.scatter(df[rt], df[por], c=df[hue], cmap=cmap)
-        plt.colorbar(label=hue, orientation='vertical', fraction=.057, pad=0.05)
-        plt.yscale('log'); plt.xscale('log')
-        
-    elif color_code=='cat':
-        # for catgorical column
-        assert hue != None, 'Set hue value'
-        sns.scatterplot(data=df, x=rt, y=por, hue=hue, ec=None)
-        plt.yscale('log'); plt.xscale('log')
-        plt.legend(loc='best')
-        
-    plt.xlim(0.1,1000)
-    plt.ylim(0.01,1.)
-    plt.ylabel(r'$ \phi Porosity $', fontsize=18); plt.xlabel(r'$ \Omega m (R_{t}) $', fontsize=18)
-    plt.gca().xaxis.set_major_formatter(FormatStrFormatter("%.1f"))
-    plt.gca().yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
 
-    #ticks added to the opposite side of the plot
-    plt.tick_params(bottom=True, top=True,
-            left=True, right=True, labelbottom=True,
-            labeltop=True, labelleft=True, labelright=True)
-
-    
-    #saturation lines
-    sw = (.8,0.6,0.4,0.2, 0.1)
-    phi = (0.01,1)
-
-    rt = np.zeros((len(sw), len(phi)))
-
-    for i in range (0, len(sw)):
-        for j in range (0,len(phi)):
-            rt_result = ((a*rwa)/(sw[i]**n)/(phi[j]**m))
-            rt[i,j] = rt_result     
-
-    for i in range(0,len(sw)):
-        plt.plot(rt[i], phi, label=str(int(sw[i]*100))+'%')
-        plt.legend(loc='best')
-    
-    plt.show()
+    ax = _axes(ax, figsize)
+    ax.set_xscale('log'); ax.set_yscale('log')
+    ax.set_xlim(.1, 1000); ax.set_ylim(.01, 1)
+    sw = (1., .8, .6, .4, .2, .1)
+    phi = np.array([.01, 1.])
+    for s in sw:
+        r = a * rwa / s**n / phi**m
+        _ref(ax, r, phi, color=st.INK2 if s == 1 else st.MUTED, lw=1.1 if s == 1 else .8)
+        #label each line along its slope at porosity 0.4, above the usual data
+        x_label = a * rwa / s**n / .4**m
+        if .1 < x_label < 800:
+            angle = np.degrees(np.arctan2(-.4 / (m * x_label), 1.))
+            st.line_label(ax, x_label * 1.06, .4, f'SW {s * 100:g}%', ha='left', va='bottom', rotation=angle,
+                          rotation_mode='anchor', transform_rotates_text=True)
+    _colored(ax, df, df[rt].to_numpy(float), df[por].to_numpy(float), hue, _hue_type(df, hue, color_code), cmap)
+    ax.set_xscale('log'); ax.set_yscale('log')
+    ax.set_xlim(.1, 1000); ax.set_ylim(.01, 1)
+    for axis in (ax.xaxis, ax.yaxis):
+        axis.set_major_formatter(FuncFormatter(lambda v, _: f'{v:g}'))
+    ax.grid(True, which='minor', color=st.GRID_MINOR, lw=.4)
+    _style(ax, 'Pickett plot', f'{rt} (ohm.m)', f'{por} (v/v)',
+           ' · '.join(s for s in (res_name, f'Rw {rwa:g} ohm.m, a {a:g}, m {m:g}, n {n:g}') if s))
+    ax.grid(True, which='minor', color=st.GRID_MINOR, lw=.4)
+    return ax
