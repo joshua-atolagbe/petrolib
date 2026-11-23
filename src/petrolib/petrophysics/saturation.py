@@ -58,9 +58,10 @@ def simandoux(phie, rt, vsh, rw:float=.03, rsh:float=2., a:float=1., m:float=2.,
     r'''
     Modified Simandoux water saturation, for shaly sands
 
-        1/RT = PHIE^m SW^n / (a rw (1 - Vsh)) + Vsh SW / rsh
+        1/RT = PHIE^m SW^n / (a rw (1 - Vsh)) + Vsh SW^(n/2) / rsh
 
-    Solved exactly for n = 2. For other n the n = 2 solution is raised to 2/n
+    a quadratic in SW^(n/2), solved exactly. For n = 2 the shale term is Vsh SW / rsh, the usual
+    modified (total shale) Simandoux equation
 
     Parameters
     ----------
@@ -319,6 +320,7 @@ def movable_hydrocarbons(phie, sw, sxo) -> pd.DataFrame:
     invasion) and RESIDUAL_HC (PHIE (1 - SXO))
     '''
 
-    p, s, x = as_array(phie), as_array(sw), as_array(sxo)
-    index = phie.index if isinstance(phie, pd.Series) else None
+    #at least 1-d so floats give a one-row frame; index of the first Series given
+    p, s, x = (np.atleast_1d(as_array(v)) for v in (phie, sw, sxo))
+    index = next((v.index for v in (phie, sw, sxo) if isinstance(v, pd.Series)), None)
     return pd.DataFrame({'BVW': p * s, 'BVXO': p * x, 'MOVABLE_HC': p * (x - s), 'RESIDUAL_HC': p * (1 - x)}, index=index)
