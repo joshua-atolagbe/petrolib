@@ -108,7 +108,8 @@ def test_set_alias(well):
 
 def test_log_plots_use_curve_types(well):
     vendor = well.rename(columns=VENDOR)
-    plots.plotLog(vendor, 'TDEP', ['GR_EDTC', 'AT90', 'TNPH'], 1000, 1150)
-    axes = plt.gcf().axes
-    assert axes[0].get_xscale() == 'linear' and axes[1].get_xscale() == 'log' and axes[2].xaxis_inverted()
+    fig = plots.plotLog(vendor, 'TDEP', ['GR_EDTC', 'AT90', 'TNPH'], 1000, 1150)
+    gr, rt, nphi = (track[0] for track in fig.petrolib_tracks)
+    assert not gr.log and rt.log and nphi.scale[0] > nphi.scale[1]          #neutron reads right to left
+    assert gr.color != rt.color != nphi.color
     plt.close('all')
