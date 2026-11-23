@@ -37,10 +37,11 @@ class Correlation:
         ------
         correlation between two variable
         '''
-        #complete pairs only, sorted by x
+        #complete pairs only, sorted by x; ties in x keep the data order, so the result does not
+        #depend on the sort algorithm of the numpy version
         df = pd.DataFrame({'x': x, 'y': y}).dropna()
         n = df.shape[0]
-        y = df['y'].to_numpy()[np.argsort(df['x'].to_numpy())]
+        y = df['y'].to_numpy()[np.argsort(df['x'].to_numpy(), kind='stable')]
         #r = #{y_j <= y_i}, l = #{y_j >= y_i}: Chatterjee (2021) xi_n, valid with ties
         r = pd.Series(y).rank(method='max').to_numpy()
         l = pd.Series(-y).rank(method='max').to_numpy()
