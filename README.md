@@ -218,8 +218,12 @@ If petrolib helps your work, please cite it:
   version = {2.0.0},
   year    = {2026},
   url     = {https://github.com/joshua-atolagbe/petrolib},
-  license = {MIT}
+  license = {CC BY-NC-ND 4.0}
 }
 ```
 
 Cite the version you used (`petrolib.__version__`). The "Cite this repository" button on GitHub gives the same reference, from `CITATION.cff`.
+
+### License
+
+petrolib is licensed under [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/): you may use and share it, with attribution, for non-commercial purposes only, and you may not distribute modified versions. See [LICENSE](https://github.com/joshua-atolagbe/petrolib/blob/main/LICENSE).
