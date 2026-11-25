@@ -6,7 +6,7 @@ authors:
   - family-names: Atolagbe
     given-names: Joshua
 version: 2.0.0
-license: MIT
+license: CC-BY-NC-ND-4.0
 repository-code: "https://github.com/joshua-atolagbe/petrolib"
 url: "https://petrolib.readthedocs.io"
 keywords:
